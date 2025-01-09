@@ -1,4 +1,4 @@
-import { Importacao } from "@prisma/client";
+import { Importacao, Prisma, PrismaClient } from "@prisma/client";
 
 export type dadosDoFormulario = {
   file: File;
@@ -18,6 +18,7 @@ export interface IImportacaoRepository {
     dataReferencia: Date,
     site: string,
     user: string,
+    dependencia: PrismaClient | Prisma.TransactionClient,
   ): Promise<{ error: boolean; message: string }>;
   apagarImportacaoComDataESite(
     dataReferencia: Date,

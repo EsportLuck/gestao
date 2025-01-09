@@ -1,4 +1,10 @@
-import { Importacao, Localidade, Secao } from "@prisma/client";
+import {
+  Importacao,
+  Localidade,
+  Prisma,
+  PrismaClient,
+  Secao,
+} from "@prisma/client";
 import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
 import { TFile } from "@/app/api/services";
 import {
@@ -23,6 +29,7 @@ export interface IImportacaoService {
     dataReferencia: Date,
     site: string,
     user: string,
+    dependencia: PrismaClient | Prisma.TransactionClient | undefined,
   ): Promise<{ error: boolean; message: string }>;
   apagarImportacaoComDataESite(
     dataReferencia: Date,
