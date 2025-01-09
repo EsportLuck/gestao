@@ -185,7 +185,8 @@ export class FormatterStrategy {
     if (formatter.length === 0)
       return {
         success: false,
-        message: "Não há dados para formatar",
+        message:
+          "Formato de arquivo inválido, verifique se o arquivo pertence ao site",
         file: undefined,
       };
 
