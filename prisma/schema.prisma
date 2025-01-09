@@ -1,0 +1,336 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  password     String
+  site         String
+  role         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  refreshToken String?
+}
+
+model Cronjob {
+  id   Int      @id @default(autoincrement())
+  name String
+  date DateTime @default(now()) @db.Date
+}
+
+model Estabelecimento {
+  id                 Int               @id @default(autoincrement())
+  name               String            @unique
+  status_atividade   String            @default("ATIVO")
+  status_compromisso Int               @default(5)
+  ciclo_pagamento    Ciclo[]
+  localidade         Localidade?       @relation(fields: [localidadeId], references: [id])
+  localidadeId       Int?
+  secao              Secao?            @relation(fields: [secaoId], references: [id])
+  secaoId            Int?
+  rota               Rota?             @relation(fields: [rotaId], references: [id])
+  rotaId             Int?
+  supervisor         Supervisor?       @relation(fields: [supervisorId], references: [id])
+  supervisorId       Int?
+  site               String
+  empresa            Empresa?          @relation(fields: [empresaId], references: [id])
+  empresaId          Int?
+  vendas             Vendas[]
+  premios            Premios[]
+  liquido            Liquido[]
+  caixa              Caixa[]
+  despesas           Despesas[]
+  despesas_fixas     DespesasFixas[]
+  comissao           Comissao[]
+  sangria            Sangria[]
+  prestacao          Prestacao[]
+  negativo           Negativo[]
+  deposito           Deposito[]
+  comissao_retida    Boolean?          @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  login              Login[]
+  matriz             Estabelecimento?  @relation("matrizId", fields: [matrizId], references: [id])
+  matrizId           Int?
+  filiais            Estabelecimento[] @relation("matrizId")
+  lancamento         Lancamentos[]
+  observacao         Observacao[]
+  companies          Companies?        @relation(fields: [companiesId], references: [id])
+  companiesId        Int?
+}
+
+model Negativo {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Prestacao {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Ciclo {
+  id              Int             @id @default(autoincrement())
+  status          String          @default("PENDENTE")
+  reference_date  DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Companies {
+  id               Int               @id @default(autoincrement())
+  parent_companies Estabelecimento[]
+}
+
+model Login {
+  id              Int             @id @default(autoincrement())
+  name            String          @unique
+  password        String
+  equipment       String
+  serial          String
+  imagemUrl       String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Observacao {
+  id              Int              @id @default(autoincrement())
+  comentario      String
+  createdBy       String           @default("")
+  createdAt       DateTime         @default(now()) @db.Date
+  updatedAt       DateTime         @updatedAt
+  establishment   Estabelecimento? @relation(fields: [establishmentId], references: [id])
+  establishmentId Int?
+  lancamento      Lancamentos?     @relation(fields: [lancamentoId], references: [id])
+  lancamentoId    Int?
+}
+
+model Lancamentos {
+  id              Int             @id @default(autoincrement())
+  id_ciclo        Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  referenceDate   DateTime        @db.Date
+  value           Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  type            String
+  paymentMethod   String
+  status          String
+  observation     Observacao[]
+  recorded_by     String
+  approved_by     String?
+  url             String
+  downloadUrl     String
+}
+
+model Vendas {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  site            String
+  quantity        Int
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  importacaoId    Int
+}
+
+model Comissao {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  site            String
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  importacaoId    Int
+}
+
+model Premios {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  site            String
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  importacaoId    Int
+}
+
+model Liquido {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  site            String
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  importacaoId    Int
+}
+
+model Caixa {
+  id              Int             @id @default(autoincrement())
+  status          String
+  referenceDate   DateTime        @db.Date
+  futebol         String?
+  value_futebol   Int?
+  bicho           String?
+  value_bicho     Int?
+  loteria         String?
+  value_loteria   Int?
+  total           Int
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+  importacao      Importacao?     @relation(fields: [importacaoId], references: [id])
+  importacaoId    Int?
+}
+
+model Despesas {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model DespesasFixas {
+  id              Int             @id @default(autoincrement())
+  value           Int
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Sangria {
+  id              Int             @id @default(autoincrement())
+  value           Int             @default(0)
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Deposito {
+  id              Int             @id @default(autoincrement())
+  value           Int             @default(0)
+  referenceDate   DateTime        @db.Date
+  createdAt       DateTime        @default(now())
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  establishmentId Int
+}
+
+model Supervisor {
+  id            Int               @id @default(autoincrement())
+  name          String            @unique
+  createdAt     DateTime          @default(now())
+  Localidade    Localidade[]
+  Secao         Secao[]
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
+  empresaId     Int?
+  updatedAt     DateTime          @updatedAt
+  establishment Estabelecimento[]
+}
+
+model Localidade {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  empresa          Empresa?          @relation(fields: [empresaId], references: [id])
+  empresaId        Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  estabelecimentos Estabelecimento[]
+  secao            Secao[]
+  Supervisor       Supervisor?       @relation(fields: [Supervisorid], references: [id])
+  Supervisorid     Int?
+}
+
+model Secao {
+  id            Int               @id @default(autoincrement())
+  name          String            @unique
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
+  empresaId     Int?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  establishment Estabelecimento[]
+  Localidade    Localidade?       @relation(fields: [localidadeId], references: [id])
+  localidadeId  Int?
+  rota          Rota[]
+
+  Supervisor   Supervisor? @relation(fields: [Supervisorid], references: [id])
+  Supervisorid Int?
+}
+
+model Rota {
+  id            Int               @id @default(autoincrement())
+  name          String            @unique
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
+  empresaId     Int?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  establishment Estabelecimento[]
+  Secao         Secao?            @relation(fields: [secaoId], references: [id])
+  secaoId       Int?
+}
+
+model Empresa {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Localidade      Localidade[]
+  Secao           Secao[]
+  Rota            Rota[]
+  Estabelecimento Estabelecimento[]
+
+  Supervisor Supervisor[]
+}
+
+model Importacao {
+  id            Int        @id @default(autoincrement())
+  name          String
+  state         String
+  referenceDate DateTime   @db.Date
+  relatorio     String
+  modifiedBy    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  Caixa         Caixa[]
+  Vendas        Vendas[]
+  Premios       Premios[]
+  Liquido       Liquido[]
+  Comissao      Comissao[]
+}
