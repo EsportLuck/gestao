@@ -1,6 +1,6 @@
 import { prisma } from "@/services/prisma";
 import { IImportacaoRepository } from "../contracts/Importacao";
-import { Importacao } from "@prisma/client";
+import { Importacao, Prisma, PrismaClient } from "@prisma/client";
 
 export class ImportarRepository implements IImportacaoRepository {
   async apagarImportacaoComDataESite(
@@ -39,9 +39,11 @@ export class ImportarRepository implements IImportacaoRepository {
     dataReferencia: Date,
     site: string,
     user: string,
+    dependencia: PrismaClient | Prisma.TransactionClient | undefined,
   ): Promise<{ error: boolean; message: string }> {
+    const prismaLocal = dependencia || prisma;
     try {
-      await prisma.importacao.create({
+      await prismaLocal.importacao.create({
         data: {
           name: user,
           referenceDate: dataReferencia,
