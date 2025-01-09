@@ -11,6 +11,20 @@ export const formatterReportVip = (
   });
   const establishments = rowsWithEstablishments(reportJson);
   const establishmentsWithSales = establishmentWithSales(establishments);
+  const isValid = establishmentsWithSales.every((item) => {
+    return (
+      typeof item["Cód."] === "string" &&
+      typeof item.Cambista === "string" &&
+      !isNaN(formatNumber(item["Valor apostado"])) &&
+      !isNaN(formatNumber(item["Qtd. bilhetes"])) &&
+      !isNaN(formatNumber(item["Comissão cambista"])) &&
+      !isNaN(formatNumber(item["Valor Pago"])) &&
+      !isNaN(formatNumber(item["Líq. Camb"]))
+    );
+  });
+  if (!isValid) {
+    return [];
+  }
   return establishmentsWithSales.map((item): IFormattedReportSportNet => {
     return {
       Estabelecimento: item["Cód."] + " - " + item.Cambista.trim(),
