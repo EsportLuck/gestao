@@ -63,11 +63,12 @@ export async function POST(req: Request) {
 
     if (!success) return NextResponse.json({ status: 500, message });
     const { status, messagePrisma } = await prisma.$transaction(
-      async () => {
+      async (tx) => {
         await importacaoService.criarImportacao(
           dados.weekReference as Date,
           dados.site,
           dados.user,
+          tx,
         );
         const { importação } =
           await importacaoService.buscarPorImportacaoPorDataESite(
