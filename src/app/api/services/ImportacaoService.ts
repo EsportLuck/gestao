@@ -1,5 +1,11 @@
 import { WorkSheet } from "xlsx";
-import { Importacao, Localidade, Prisma, Secao } from "@prisma/client";
+import {
+  Importacao,
+  Localidade,
+  Prisma,
+  PrismaClient,
+  Secao,
+} from "@prisma/client";
 import {
   IImportacaoRepository,
   IImportacaoService,
@@ -70,11 +76,13 @@ export class ImportacaoService implements IImportacaoService {
     dataReferencia: Date,
     site: string,
     user: string,
+    dependencia: PrismaClient | Prisma.TransactionClient,
   ): Promise<{ error: boolean; message: string }> {
     return await this.importacaoRepository.criarImportacao(
       dataReferencia,
       site,
       user,
+      dependencia,
     );
   }
   async buscarPorImportacaoPorDataESite(dataReferencia: Date, site: string) {
