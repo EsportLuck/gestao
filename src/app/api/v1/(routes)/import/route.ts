@@ -60,21 +60,19 @@ export async function POST(req: Request) {
       dados.file,
       dados.site as keyof FormatterFunctions,
     );
-
+    const importação = await prisma.$transaction(async (tx) => {
+      return await tx.importacao.create({
+        data: {
+          name: dados.user,
+          referenceDate: dados.weekReference as Date,
+          relatorio: dados.site,
+          state: "Importado",
+        },
+      });
+    });
     if (!success) return NextResponse.json({ status: 500, message });
     const { status, messagePrisma } = await prisma.$transaction(
       async (tx) => {
-        await importacaoService.criarImportacao(
-          dados.weekReference as Date,
-          dados.site,
-          dados.user,
-          tx,
-        );
-        const { importação } =
-          await importacaoService.buscarPorImportacaoPorDataESite(
-            dados.weekReference as Date,
-            dados.site,
-          );
         const { success: successGravarDados, message: messageGravarDados } =
           await importacaoService.gravarDadosNoBanco(
             file,
@@ -109,7 +107,10 @@ export async function POST(req: Request) {
       error instanceof Prisma.PrismaClientKnownRequestError ||
       error instanceof Prisma.PrismaClientUnknownRequestError
     ) {
-      return NextResponse.json({ status: 500, message: error.message });
+      return NextResponse.json({
+        status: 500,
+        message: ` Tipo do error ${error.message} `,
+      });
     } else {
       console.error("import post", error);
       return NextResponse.json({

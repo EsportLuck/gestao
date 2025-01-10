@@ -17,7 +17,7 @@ export const gravarDadosBingo = async (
   site: keyof FormatterFunctions,
   weekReference: Date,
   company: string,
-  user: string,
+  _user: string,
   estabelecimentosNoBanco: EstabelecimentoSelecionado[] | null,
   localidadesNoBanco: Localidade[] | null,
   secaoNoBanco: Secao[] | null,
@@ -226,6 +226,7 @@ export const gravarDadosBingo = async (
               },
             });
           }
+          console.log({ estabelecimento, importacaoId });
           await tx.vendas.create({
             data: {
               quantity: dadosParaGravarNoBanco.Quantidade,
@@ -293,6 +294,7 @@ export const gravarDadosBingo = async (
             });
           }
         }
+        return { success: false, message: "Teste" };
         return { success: true, message: "Importado com sucesso" };
       });
     if (!success) {

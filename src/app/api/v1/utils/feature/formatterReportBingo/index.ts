@@ -44,10 +44,10 @@ export const formatterReportBingo = (
 
   const dadosOrganizados = json.map((item) => {
     return {
-      Localidade: item.Localidade.trim() + " Bingo",
-      Seção: item.Seção.trim() + " Bingo",
-      Rota: item.Rota.trim() + " Bingo",
-      Estabelecimento: item.Ponto.trim(),
+      Localidade: item.Localidade,
+      Seção: item.Seção,
+      Rota: item.Rota,
+      Estabelecimento: item.Ponto,
       Quantidade: formatNumber(item["Qtd. Cartela"]),
       Vendas: Number((formatNumber(item.Venda) * 100).toFixed(0)),
       Prêmio: Number((formatNumber(item["Prêmio"]) * 100).toFixed(0)),
@@ -73,5 +73,18 @@ export const formatterReportBingo = (
   if (dadosFiltrados.length === 0 || !dadosFiltrados) {
     return [];
   }
-  return dadosFiltrados;
+
+  return dadosFiltrados.map((item) => {
+    return {
+      Localidade: item.Localidade.trim() + " Bingo",
+      Seção: item["Seção"].trim() + " Bingo",
+      Rota: item.Rota.trim() + " Bingo",
+      Estabelecimento: item.Estabelecimento.trim(),
+      Quantidade: item.Quantidade,
+      Vendas: item.Vendas,
+      Prêmio: item["Prêmio"],
+      Comissão: item["Comissão"],
+      Líquido: item["Líquido"],
+    };
+  });
 };
