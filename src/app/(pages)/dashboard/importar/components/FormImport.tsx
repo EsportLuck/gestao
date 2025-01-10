@@ -81,6 +81,7 @@ export const FormImport: FC = () => {
     "/api/v1/management/empresa/obterTodas",
   );
   const empresas = useMemo(() => {
+    console.log({ empresas: obterEmpresas.data });
     if (obterEmpresas.data && obterEmpresas.data.empresas.length > 0) {
       return obterEmpresas.data.empresas.map((empresa) => ({
         ...empresa,
