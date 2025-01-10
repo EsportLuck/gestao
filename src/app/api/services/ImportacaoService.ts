@@ -167,6 +167,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient | undefined,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -184,6 +185,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     );
 
     if (!success) return { success, message };
@@ -695,6 +697,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient | undefined,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -710,6 +713,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       );
       if (!success) {
         return { success, message };
@@ -753,6 +757,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco: Localidade[] | null,
       secaoNoBanco: Secao[] | null,
       importacaoId: number,
+      tx: Prisma.TransactionClient | undefined,
     ) => Promise<
       | { success: true; message: "Importado com sucesso" }
       | { success: false; message: string }
@@ -901,6 +906,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) => {
       return await this.salvarReportBingoNoBanco(
         file as TFormattedReportBingo[],
@@ -912,6 +918,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       );
     },
   };

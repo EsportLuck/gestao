@@ -60,19 +60,18 @@ export async function POST(req: Request) {
       dados.file,
       dados.site as keyof FormatterFunctions,
     );
-    const importação = await prisma.$transaction(async (tx) => {
-      return await tx.importacao.create({
-        data: {
-          name: dados.user,
-          referenceDate: dados.weekReference as Date,
-          relatorio: dados.site,
-          state: "Importado",
-        },
-      });
-    });
+
     if (!success) return NextResponse.json({ status: 500, message });
     const { status, messagePrisma } = await prisma.$transaction(
       async (tx) => {
+        const importação = await tx.importacao.create({
+          data: {
+            name: dados.user,
+            referenceDate: dados.weekReference as Date,
+            relatorio: dados.site,
+            state: "Importado",
+          },
+        });
         const { success: successGravarDados, message: messageGravarDados } =
           await importacaoService.gravarDadosNoBanco(
             file,
@@ -84,6 +83,7 @@ export async function POST(req: Request) {
             todasAsLocalidades,
             todasAsSeções,
             importação?.id as number,
+            tx,
           );
         if (!successGravarDados) {
           throw new Error(
@@ -94,6 +94,7 @@ export async function POST(req: Request) {
       },
       { maxWait: 20000 },
     );
+
     const data = {
       status,
       message: messagePrisma,

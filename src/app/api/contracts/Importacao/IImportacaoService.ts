@@ -61,5 +61,6 @@ export interface IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient | undefined,
   ): Promise<{ success: boolean; message: string }>;
 }
