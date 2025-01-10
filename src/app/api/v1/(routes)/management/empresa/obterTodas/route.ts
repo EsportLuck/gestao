@@ -3,6 +3,8 @@ import { EmpresaService } from "@/app/api/services/EmpresaService";
 import { prisma } from "@/services/prisma";
 import { NextResponse } from "next/server";
 
+export const revalidate = 0;
+
 export async function GET(): Promise<
   | NextResponse<{
       empresas: {
