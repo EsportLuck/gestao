@@ -34,9 +34,9 @@ export const config = {
     // "/dashboard",
     // "/dashboard/:path*",
     // "/api/v1/:path*",
-    {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-    },
+    // {
+    //   source:
+    //     "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    // },
   ],
 };
