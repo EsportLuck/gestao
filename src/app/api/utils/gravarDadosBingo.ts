@@ -3,6 +3,7 @@ import { EstabelecimentoSelecionado } from "@/app/api/contracts";
 import { TFormattedReportBingo } from "@/app/api/v1/types";
 import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
 import { obterInicioEFimDoCiclo } from "../v1/utils/obterInicioEFimDoCiclo";
+import { obterDiaAnterior } from "../v1/utils/obterDiaAnterior";
 
 type TRespostaGravarDadosBingo =
   | {
@@ -270,14 +271,22 @@ export const gravarDadosBingo = async (
             establishmentId: estabelecimento.id,
           },
         });
-
+        const { startOfDay } = obterDiaAnterior(weekReference);
+        const caixaDoDiaAnterior = await tx.caixa.findFirst({
+          where: {
+            referenceDate: startOfDay,
+            establishmentId: estabelecimento.id,
+          },
+        });
         if (!caixa?.id) {
           await tx.caixa.create({
             data: {
               referenceDate: new Date(weekReference),
               importacaoId,
               establishmentId: estabelecimento.id,
-              total: dadosParaGravarNoBanco.Líquido,
+              total:
+                dadosParaGravarNoBanco.Líquido +
+                (caixaDoDiaAnterior?.total || 0),
               status: "PENDENTE",
             },
           });
