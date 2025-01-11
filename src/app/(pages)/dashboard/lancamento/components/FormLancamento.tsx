@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import * as z from "zod";
@@ -27,10 +27,11 @@ import { format } from "@/utils";
 
 import { TEstabelecimento } from "@/types/estabelecimento";
 import { LancamentoContext } from "@/context/lancamentoContext";
-import { estabelecimentosStorage } from "@/utils/estabelecimentosStorage";
 import { ComboboxEstablishment } from "@/components/template";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { LancamentosTable } from "@/components/template/table-lancamentos/columns";
+import { useFetch } from "@/hooks/useFetch";
+import { Estabelecimento } from "@prisma/client";
 
 const FormSchema = z.object({
   data_inicial: z
@@ -56,21 +57,20 @@ export const FormLancamento = () => {
     release?: Date;
   }>();
   const { setLancamento } = useContext(LancamentoContext);
-  const [estabelecimentos, setEstabelecimentos] = useState<
-    Partial<TEstabelecimento[]>
-  >([]);
 
   const { handleSubmit, formState, reset, control } = useForm<TFormSchema>({
     resolver: zodResolver(FormSchema),
   });
+  const obterEstabelecimentos = useFetch<Partial<Estabelecimento>[]>(
+    "/api/v1/management/establishments",
+  ).data;
 
-  useEffect(() => {
-    if (estabelecimentos.length > 0) return;
-    (async () => {
-      const estabelecimentos = await estabelecimentosStorage();
-      setEstabelecimentos(estabelecimentos);
-    })();
-  }, [estabelecimentos]);
+  const estabelecimentos = useMemo(() => {
+    if (obterEstabelecimentos && obterEstabelecimentos.length > 0) {
+      return obterEstabelecimentos;
+    }
+    return [];
+  }, [obterEstabelecimentos]);
 
   async function formSubmit(data: TFormSchema) {
     try {

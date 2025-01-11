@@ -2,7 +2,7 @@ import { TitlePage } from "@/components/TitlePage";
 import LancamentoProvider from "@/context/lancamentoContext";
 import { LayoutPage } from "./components/layoutpage";
 
-const Listar = () => {
+export default function Lancamento() {
   return (
     <main className="grid gap-2 ">
       <TitlePage title="Lançamento" />
@@ -11,5 +11,4 @@ const Listar = () => {
       </LancamentoProvider>
     </main>
   );
-};
-export default Listar;
+}

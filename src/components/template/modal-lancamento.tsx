@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
@@ -40,9 +40,10 @@ import { TEstabelecimento } from "@/types/estabelecimento";
 import axios from "axios";
 import { format } from "@/utils";
 import { useSession } from "next-auth/react";
-import { estabelecimentosStorage } from "@/utils/estabelecimentosStorage";
 import { ComboboxEstablishment } from "@/components/template";
 import router from "next/router";
+import { useFetch } from "@/hooks/useFetch";
+import { Estabelecimento } from "@prisma/client";
 
 const FormSchema = z.object({
   data_lancamento: z.date({
@@ -67,9 +68,16 @@ const FormSchema = z.object({
 });
 type TFormSchema = z.infer<typeof FormSchema>;
 export const ModalLancamento: FC = () => {
-  const [estabelecimentos, setEstabelecimentos] = useState<
-    Partial<TEstabelecimento[]>
-  >([]);
+  const obterEstabelecimentos = useFetch<Partial<Estabelecimento>[]>(
+    "/api/v1/management/establishments",
+  ).data;
+
+  const estabelecimentos = useMemo(() => {
+    if (obterEstabelecimentos && obterEstabelecimentos.length > 0) {
+      return obterEstabelecimentos;
+    }
+    return [];
+  }, [obterEstabelecimentos]);
   const formRef = useRef<HTMLFormElement | null>(null);
   const closedRef = useRef<HTMLButtonElement | null>(null);
 
@@ -80,13 +88,7 @@ export const ModalLancamento: FC = () => {
     mode: "onChange",
   });
   const { isSubmitting } = form.formState;
-  useEffect(() => {
-    if (estabelecimentos.length > 0) return;
-    (async () => {
-      const estabelecimentos = await estabelecimentosStorage();
-      setEstabelecimentos(estabelecimentos);
-    })();
-  }, [estabelecimentos]);
+
   async function formSubmit(data: TFormSchema) {
     let closed = closedRef.current;
     closed?.click();
@@ -108,7 +110,7 @@ export const ModalLancamento: FC = () => {
       });
       if (response.data.message === "Usuário não permitido") {
         toast({
-          title: "Erro ao criar lançamento",
+          title: "Erro ao criar lançamento Usuário não permitido",
           variant: "destructive",
           description: (
             <code className="text-white text-wrap">
