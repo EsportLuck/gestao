@@ -1,6 +1,7 @@
 import { TReportFratec } from "@/app/api/v1/types";
+import { TFileEstrutura } from "..";
 
-export const changeKeysObjectFratec = (obj: unknown[]): TReportFratec[] => {
+export const changeKeysObjectFratec = (obj: unknown[]): TFileEstrutura[] => {
   const headerReport = [
     "Localidade",
     "Código Ponto",
@@ -17,6 +18,6 @@ export const changeKeysObjectFratec = (obj: unknown[]): TReportFratec[] => {
     Object.keys(item).forEach((key, index) => {
       objeto[headerReport[index]] = item[key];
     });
-    return objeto as TReportFratec;
+    return objeto as TFileEstrutura;
   });
 };

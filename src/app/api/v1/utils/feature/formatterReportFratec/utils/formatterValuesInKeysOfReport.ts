@@ -1,15 +1,25 @@
 import { TReportFratec } from "@/app/api/v1/types";
+import { formatNumber } from "../../../formatNumber";
+import { TFileEstrutura } from "..";
 
 export const formatterValuesInKeysOfReport = (
-  estabelecimentos: TReportFratec[],
-) => {
+  estabelecimentos: TFileEstrutura[],
+): TReportFratec[] => {
   return estabelecimentos.map((estabelecimento) => {
     const Localidade = "2300 - PlaySports Sport Luck";
     const Nome = estabelecimento.Nome.trim();
-    const Vendas = estabelecimento.Vendas / 100;
-    const Comissão = estabelecimento.Comissão / 100;
-    const PrêmiosPagos = estabelecimento["Prêmios Pagos"] / 100;
-    const Líquido = estabelecimento.Líquido / 100;
+    const Vendas = Number(
+      (formatNumber(estabelecimento.Vendas) * 100).toFixed(0),
+    );
+    const Comissão = Number(
+      (formatNumber(estabelecimento.Comissão) * 100).toFixed(0),
+    );
+    const PrêmiosPagos = Number(
+      (formatNumber(estabelecimento["Prêmios Pagos"]) * 100).toFixed(0),
+    );
+    const Líquido = Number(
+      (formatNumber(estabelecimento.Líquido) * 100).toFixed(0),
+    );
     return {
       Localidade,
       Nome,
