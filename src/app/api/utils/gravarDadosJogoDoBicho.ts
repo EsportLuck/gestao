@@ -1,10 +1,9 @@
-import { Localidade, Secao } from "@prisma/client";
+import { Localidade, Prisma, Secao } from "@prisma/client";
 import { EstabelecimentoSelecionado } from "@/app/api/contracts";
 import { EstabelecimentoService } from "@/app/api/services";
 import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
 import { TOlitecCaratecPlanetaCell } from "@/app/api/v1/types";
 import { EstabelecimentoRepository } from "@/app/api/repositories";
-import { prisma } from "@/services/prisma";
 import { registerReportDataJogoDoBicho } from "../v1/utils/create";
 
 export const gravarDadosJogoDoBicho = async (
@@ -17,6 +16,7 @@ export const gravarDadosJogoDoBicho = async (
   _localidadesNoBanco: Localidade[] | null,
   _secaoNoBanco: Secao[] | null,
   importacaoId: number,
+  tx: Prisma.TransactionClient,
 ): Promise<
   | { success: true; message: "Importado com sucesso" }
   | { success: false; message: string }
@@ -26,14 +26,16 @@ export const gravarDadosJogoDoBicho = async (
   );
 
   const results = [];
+
   for await (const dadosDosEstabelecimentos of file) {
+    let estabelecimentoExist;
     if (
       !estabelecimentosNoBanco?.find(
         (estabelecimentoDoBanco) =>
           estabelecimentoDoBanco.name === dadosDosEstabelecimentos.Ponto.trim(),
       )
     ) {
-      await prisma.estabelecimento.create({
+      estabelecimentoExist = await tx.estabelecimento.create({
         data: {
           name: dadosDosEstabelecimentos.Ponto.trim(),
           site,
@@ -50,10 +52,6 @@ export const gravarDadosJogoDoBicho = async (
         },
       });
     }
-
-    const estabelecimentoExist = await estabelecimentoService.encontrarPorNome(
-      dadosDosEstabelecimentos.Ponto.trim(),
-    );
 
     if (!estabelecimentoExist) {
       results.push({
@@ -72,6 +70,7 @@ export const gravarDadosJogoDoBicho = async (
       dadosDosEstabelecimentos.Líquido,
       importacaoId,
       estabelecimentoExist.matrizId as number,
+      tx,
     );
 
     results.push({ success, message });

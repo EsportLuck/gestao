@@ -1,5 +1,6 @@
 import { CaixaController } from "@/app/api/controller";
 import { seNaoExistiValorRetornarZero } from "@/utils";
+import { Prisma } from "@prisma/client";
 
 export async function atualizarCaixaMatriz(
   matrizId: number | null,
@@ -7,9 +8,10 @@ export async function atualizarCaixaMatriz(
   lte: Date,
   value_search: string,
   liquido: number,
+  tx: Prisma.TransactionClient,
 ) {
   if (matrizId === null) return;
-  const caixaController = new CaixaController();
+  const caixaController = new CaixaController(tx);
   const caixaMatriz = await caixaController.encontrarCaixaDaMatriz({
     id: matrizId,
     gte,

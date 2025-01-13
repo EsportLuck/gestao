@@ -1,4 +1,5 @@
 import { prisma } from "@/services/prisma";
+import { Prisma } from "@prisma/client";
 
 export const createRegisterNet = async (
   estabelecimento: number | null,
@@ -6,12 +7,13 @@ export const createRegisterNet = async (
   site: string,
   liquido: number,
   importacaoId: number,
+  tx: Prisma.TransactionClient,
 ) => {
   if (!estabelecimento || !weekReference || !site || !importacaoId)
     throw new Error("Some data is missing in createRegisterNet");
   const value = Number((liquido * 100).toFixed(0));
   try {
-    await prisma.liquido.create({
+    await tx.liquido.create({
       data: {
         value,
         referenceDate: new Date(weekReference),

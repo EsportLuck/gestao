@@ -1,10 +1,12 @@
 import { prisma } from "@/services/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 interface IEncontrarCaixaDaMatriz {
   id: number | null;
   gte: Date;
   lte: Date;
   value_search: any;
+  tx: Prisma.TransactionClient | PrismaClient;
 }
 
 export async function encontrarCaixaDaMatriz({
@@ -12,26 +14,20 @@ export async function encontrarCaixaDaMatriz({
   gte,
   lte,
   value_search,
+  tx,
 }: IEncontrarCaixaDaMatriz): Promise<{
   id: number;
   total: number;
   [key: string]: any;
 } | null> {
-  if (!id || !gte || !lte || !value_search)
-    throw new Error(
-      `Some data is missing in encontrarCaixaDaMatriz id: ${id} gte: ${gte} lte: ${lte} value_search: ${value_search}`,
-    );
   try {
-    const maiorQue = new Date(new Date(gte).setUTCHours(0, 0, 0, 0));
-    const menorQue = new Date(new Date(lte).setUTCHours(23, 59, 59, 999));
-
-    return await prisma.caixa.findFirst({
+    return await tx.caixa.findFirst({
       where: {
         establishmentId: {
-          equals: id,
+          equals: id as number,
         },
         AND: {
-          referenceDate: { gte: maiorQue, lte: menorQue },
+          referenceDate: gte,
         },
       },
       select: {
@@ -43,5 +39,5 @@ export async function encontrarCaixaDaMatriz({
   } catch (error) {
     return null;
     console.error("encontrarCaixaDaMatriz", error);
-  }   
+  }
 }

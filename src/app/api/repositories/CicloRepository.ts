@@ -1,10 +1,14 @@
 import { prisma } from "@/services/prisma";
 import { ICicloRepository } from "@/app/api/contracts/ICicloRepository";
-import { Ciclo } from "@prisma/client";
+import { Ciclo, Prisma, PrismaClient } from "@prisma/client";
 
 export class CicloRepository implements ICicloRepository {
+  tx: Prisma.TransactionClient | PrismaClient;
+  constructor(tx: Prisma.TransactionClient | PrismaClient = prisma) {
+    this.tx = tx;
+  }
   async criar(establishmentId: number, reference_date: Date): Promise<void> {
-    await prisma.ciclo.create({
+    await this.tx.ciclo.create({
       data: {
         reference_date,
         establishmentId,
@@ -13,7 +17,7 @@ export class CicloRepository implements ICicloRepository {
   }
 
   async atualizar(cicloId: number, status: string): Promise<void> {
-    await prisma.ciclo.update({
+    await this.tx.ciclo.update({
       where: {
         id: cicloId,
       },
@@ -30,7 +34,7 @@ export class CicloRepository implements ICicloRepository {
   ): Promise<Ciclo | null> {
     const gte = new Date(dataInicial.setHours(0, 0, 0, 0));
     const lte = new Date(dataFinal.setHours(23, 59, 59, 999));
-    return await prisma.ciclo.findFirst({
+    return await this.tx.ciclo.findFirst({
       where: {
         establishmentId,
         AND: {

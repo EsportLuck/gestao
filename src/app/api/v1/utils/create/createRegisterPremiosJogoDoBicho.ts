@@ -1,5 +1,6 @@
 import { prisma } from "@/services/prisma";
 import { COMMISSION_AMOUNT } from "@/app/api/v1/utils/VARIABLES";
+import { Prisma } from "@prisma/client";
 
 export const createRegisterPremiosJogoDoBicho = async (
   estabelecimento: number | null,
@@ -8,6 +9,7 @@ export const createRegisterPremiosJogoDoBicho = async (
   paidOut: number,
   sales: number,
   importacaoId: number,
+  tx: Prisma.TransactionClient,
 ) => {
   if (!estabelecimento || !weekReference || !site)
     throw new Error("Some data is missing in createRegisterPremiosJogoDoBicho");
@@ -15,7 +17,7 @@ export const createRegisterPremiosJogoDoBicho = async (
     ((paidOut - sales * COMMISSION_AMOUNT) * 100).toFixed(0),
   );
   try {
-    await prisma.premios.create({
+    await tx.premios.create({
       data: {
         value,
         referenceDate: new Date(weekReference),

@@ -1,7 +1,11 @@
-import { Ciclo } from "@prisma/client";
+import { Ciclo, Prisma, PrismaClient } from "@prisma/client";
 
 export interface ICicloRepository {
-  criar(establishmentId: number, reference_date: Date): Promise<void>;
+  criar(
+    establishmentId: number,
+    reference_date: Date,
+    tx: Prisma.TransactionClient | PrismaClient,
+  ): Promise<void>;
   atualizar(cicloId: number, status: string): Promise<void>;
   encontrarPorEstabelecimentoEData(
     establishmentId: number,

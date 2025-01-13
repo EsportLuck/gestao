@@ -1,5 +1,5 @@
-import { prisma } from "@/services/prisma";
 import { caixaStrategy } from "@/app/api/v1/utils/strategy";
+import { Prisma } from "@prisma/client";
 
 export const createRegisterCashierBicho = async (
   estabelecimento: number | null,
@@ -8,6 +8,7 @@ export const createRegisterCashierBicho = async (
   liquido: number,
   idImportacao: number,
   matrizId: number | null,
+  tx: Prisma.TransactionClient,
 ) => {
   if (!estabelecimento || !weekReference || !site || !idImportacao)
     throw new Error("Some data is missing in createRegisterCashierBicho");
@@ -21,6 +22,7 @@ export const createRegisterCashierBicho = async (
       weekReference,
       value_search: "value_bicho",
       tipo_caixa: "bicho",
+      tx,
     });
   } catch (error) {
     console.error("create createRegisterCashierBicho", error);

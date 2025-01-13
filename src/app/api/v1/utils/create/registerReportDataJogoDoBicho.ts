@@ -7,6 +7,7 @@ import { prisma } from "@/services/prisma";
 
 import { CicloRepository } from "@/app/api/repositories/CicloRepository";
 import { CicloService } from "@/app/api/services/CicloService";
+import { Prisma } from "@prisma/client";
 
 export const registerReportDataJogoDoBicho = async (
   estabelecimentoId: number | null,
@@ -17,9 +18,10 @@ export const registerReportDataJogoDoBicho = async (
   liquido: number,
   importacaoId: number,
   matrizId: number | null,
+  tx: Prisma.TransactionClient,
 ) => {
   try {
-    const cicloRepository = new CicloRepository();
+    const cicloRepository = new CicloRepository(tx);
     const cicloService = new CicloService(cicloRepository);
     await Promise.all([
       cicloService.criar(
@@ -34,6 +36,7 @@ export const registerReportDataJogoDoBicho = async (
         sales,
         0,
         importacaoId,
+        tx,
       ),
       createRegisterCommissionJogoDoBicho(
         estabelecimentoId,
@@ -41,6 +44,7 @@ export const registerReportDataJogoDoBicho = async (
         site,
         sales,
         importacaoId,
+        tx,
       ),
       createRegisterPremiosJogoDoBicho(
         estabelecimentoId,
@@ -49,6 +53,7 @@ export const registerReportDataJogoDoBicho = async (
         paidOut,
         sales,
         importacaoId,
+        tx,
       ),
       createRegisterNet(
         estabelecimentoId,
@@ -56,6 +61,7 @@ export const registerReportDataJogoDoBicho = async (
         site,
         liquido,
         importacaoId,
+        tx,
       ),
       createRegisterCashierBicho(
         estabelecimentoId,
@@ -64,6 +70,7 @@ export const registerReportDataJogoDoBicho = async (
         liquido,
         importacaoId,
         matrizId,
+        tx,
       ),
     ]);
 

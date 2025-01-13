@@ -2,8 +2,7 @@ import { CaixaController } from "@/app/api/controller";
 import { seNaoExistiValorRetornarZero } from "@/utils";
 import { obterDiaAnterior } from "@/app/api/v1/utils/obterDiaAnterior";
 import { atualizarCaixaMatriz } from "./atualizarCaixaMatriz";
-import { prisma } from "@/services/prisma";
-
+import { Prisma } from "@prisma/client";
 type TCaixaStrategy = {
   establishmentId: number | null;
   matrizId: number | null;
@@ -13,6 +12,7 @@ type TCaixaStrategy = {
   weekReference: Date;
   idImportacao: number;
   tipo_caixa: "bicho" | "futebol" | "loteria";
+  tx: Prisma.TransactionClient;
 };
 
 interface ICaixaStrategy {
@@ -28,6 +28,7 @@ export const caixaStrategy: ICaixaStrategy = async ({
   weekReference,
   idImportacao,
   tipo_caixa,
+  tx,
 }) => {
   if (!establishmentId || !value_search || !liquido || !site)
     throw new Error(
@@ -35,7 +36,7 @@ export const caixaStrategy: ICaixaStrategy = async ({
     );
   try {
     const { startOfDay: gte } = obterDiaAnterior(weekReference.toString());
-    const caixaController = new CaixaController();
+    const caixaController = new CaixaController(tx);
 
     const [caixaAtual, caixaAnterior, caixaMatriz, caixaMatrizAnterior] =
       await Promise.all([
@@ -69,6 +70,7 @@ export const caixaStrategy: ICaixaStrategy = async ({
       new Date(weekReference),
       value_search,
       liquido,
+      tx,
     );
     if (!atualizou && matrizId)
       await caixaController.criarCaixa({
@@ -82,6 +84,7 @@ export const caixaStrategy: ICaixaStrategy = async ({
         total:
           liquido * 100 +
           seNaoExistiValorRetornarZero(caixaMatrizAnterior?.total),
+        tx,
       });
 
     const caixaExiste = caixaAtual.length !== 0;
@@ -116,6 +119,7 @@ export const caixaStrategy: ICaixaStrategy = async ({
         tipo_caixa,
         idImportacao,
         liquido: Number((liquido * 100).toFixed(0)),
+        tx,
       });
     }
   } catch (error) {

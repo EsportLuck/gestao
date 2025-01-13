@@ -1,5 +1,6 @@
 import { prisma } from "@/services/prisma";
 import { COMMISSION_AMOUNT } from "../VARIABLES";
+import { Prisma } from "@prisma/client";
 
 export const createRegisterCommissionJogoDoBicho = async (
   estabelecimento: number | null,
@@ -7,6 +8,7 @@ export const createRegisterCommissionJogoDoBicho = async (
   site: string,
   comissão: number,
   importacaoId: number,
+  tx: Prisma.TransactionClient,
 ) => {
   if (!estabelecimento || !weekReference || !site || !importacaoId)
     throw new Error(
@@ -14,7 +16,7 @@ export const createRegisterCommissionJogoDoBicho = async (
     );
   try {
     const value = Number((comissão * COMMISSION_AMOUNT * 100).toFixed(0));
-    await prisma.comissao.create({
+    await tx.comissao.create({
       data: {
         value,
         referenceDate: new Date(weekReference),

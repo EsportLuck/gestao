@@ -3,8 +3,14 @@ import { criarCaixa } from "./criarCaixa";
 import { atualizarCaixa } from "./atualizarCaixa";
 import { verificarSeEMatriz } from "./verificarSeEMatriz";
 import { encontrarCaixaDaMatriz } from "./encontrarCaixaDaMatriz";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma } from "@/services/prisma";
 
 export class CaixaController {
+  tx: Prisma.TransactionClient | PrismaClient;
+  constructor(tx: Prisma.TransactionClient | PrismaClient = prisma) {
+    this.tx = tx;
+  }
   async verificarSeEMatriz({ id }: { id: number }) {
     return verificarSeEMatriz({ id });
   }
@@ -21,7 +27,7 @@ export class CaixaController {
     value_search: string;
   }) {
     if (!id) return null;
-    return encontrarCaixaDaMatriz({ id, gte, lte, value_search });
+    return encontrarCaixaDaMatriz({ id, gte, lte, value_search, tx: this.tx });
   }
 
   async encontrarCaixaEmPeridoDeTempo(
@@ -29,7 +35,7 @@ export class CaixaController {
     gte: Date,
     lte: Date,
   ) {
-    return encontrarCaixaEmPeridoDeTempo(establishmentId, gte, lte);
+    return encontrarCaixaEmPeridoDeTempo(establishmentId, gte, lte, this.tx);
   }
 
   async criarCaixa(data: {
@@ -41,6 +47,7 @@ export class CaixaController {
     tipo_caixa: string;
     idImportacao: number;
     liquido: number;
+    tx: Prisma.TransactionClient | PrismaClient;
   }) {
     return criarCaixa(data);
   }
@@ -51,6 +58,6 @@ export class CaixaController {
     value_search: string,
     searchTotal: number,
   ) {
-    return atualizarCaixa(id, total, value_search, searchTotal);
+    return atualizarCaixa(id, total, value_search, searchTotal, this.tx);
   }
 }

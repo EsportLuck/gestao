@@ -1,4 +1,5 @@
 import { prisma } from "@/services/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 export async function criarCaixa(data: {
   total: number;
@@ -9,6 +10,7 @@ export async function criarCaixa(data: {
   tipo_caixa: string;
   idImportacao: number;
   liquido: number;
+  tx: Prisma.TransactionClient | PrismaClient;
 }) {
   const {
     total,
@@ -19,9 +21,10 @@ export async function criarCaixa(data: {
     tipo_caixa,
     idImportacao,
     liquido,
+    tx,
   } = data;
 
-  await prisma.caixa.create({
+  await tx.caixa.create({
     data: {
       total,
       referenceDate,
