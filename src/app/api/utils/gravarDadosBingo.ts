@@ -134,6 +134,11 @@ export const gravarDadosBingo = async (
                     name: company,
                   },
                 },
+                companies: {
+                  connect: {
+                    id: 1,
+                  },
+                },
                 site,
                 localidade: {
                   connect: {
@@ -184,6 +189,11 @@ export const gravarDadosBingo = async (
               empresa: {
                 connect: {
                   name: company,
+                },
+              },
+              companies: {
+                connect: {
+                  id: 1,
                 },
               },
               localidade: {

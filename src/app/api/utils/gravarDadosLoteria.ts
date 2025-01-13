@@ -1,4 +1,4 @@
-import { Localidade, Secao } from "@prisma/client";
+import { Localidade, Prisma, Secao } from "@prisma/client";
 import { EstabelecimentoSelecionado } from "@/app/api/contracts";
 import { EstabelecimentoService, LocalidadeService } from "@/app/api/services";
 import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
@@ -9,6 +9,8 @@ import {
 } from "@/app/api/repositories";
 import { prisma } from "@/services/prisma";
 import { registerReportLoteria } from "../v1/utils/create";
+import { obterDiaAnterior } from "../v1/utils/obterDiaAnterior";
+import { obterInicioEFimDoCiclo } from "../v1/utils/obterInicioEFimDoCiclo";
 
 export const gravarDadosLoteria = async (
   file: TReportFratec[],
@@ -20,93 +22,214 @@ export const gravarDadosLoteria = async (
   localidadesNoBanco: Localidade[] | null,
   _secaoNoBanco: Secao[] | null,
   importacaoId: number,
+  tx: Prisma.TransactionClient,
 ): Promise<
   | { success: true; message: "Importado com sucesso" }
   | { success: false; message: string }
 > => {
-  const estabelecimentoService = new EstabelecimentoService(
-    new EstabelecimentoRepository(),
-  );
-  const localidadeService = new LocalidadeService(new LocalidadeRepository());
-  const localidadeDoArquivo = file.map((dadosDosEstabelecimentos) => {
-    return dadosDosEstabelecimentos.Localidade;
-  });
-  const localidadeSemRepetir = localidadeDoArquivo.filter(
-    (localidade, index, self) =>
-      index === self.indexOf(localidade) && localidade,
-  );
-  if (
-    !localidadesNoBanco?.find((localidadeNoBanco) =>
-      localidadeSemRepetir.find((name) => localidadeNoBanco.name === name),
-    )
-  ) {
-    for (const localidade of localidadeSemRepetir) {
-      await localidadeService.criar(localidade, company);
-    }
-  }
+  try {
+    const localidadeNoArquivo = file[0].Localidade;
+    let localidade = await tx.localidade.findUnique({
+      where: {
+        name: localidadeNoArquivo,
+      },
+    });
 
-  const results = [];
-  for await (const dadosDosEstabelecimentos of file) {
-    if (
-      !estabelecimentosNoBanco?.find(
-        (estabelecimentoDoBanco) =>
-          estabelecimentoDoBanco.name === dadosDosEstabelecimentos.Nome.trim(),
-      )
-    ) {
-      await prisma.estabelecimento.create({
+    if (typeof localidade?.id !== "number") {
+      localidade = await tx.localidade.create({
         data: {
-          name: dadosDosEstabelecimentos.Nome.trim(),
-          site,
+          name: localidadeNoArquivo,
           empresa: {
             connect: {
               name: company,
             },
           },
-          companies: {
-            connect: {
-              id: 1,
-            },
-          },
         },
       });
     }
-    const estabelecimentoExist = await estabelecimentoService.encontrarPorNome(
-      dadosDosEstabelecimentos.Nome.trim(),
+    const estabelecimentosQueFaltaCriarNoBanco = file.filter(
+      (estabelecimentoNoArquivo) =>
+        !estabelecimentosNoBanco?.find(
+          (item) => item.name === estabelecimentoNoArquivo.Nome,
+        ),
     );
-
-    const localidadeExist = await localidadeService.encontrarPorNome(
-      dadosDosEstabelecimentos.Localidade,
-    );
-
-    if (!estabelecimentoExist || !localidadeExist) {
-      results.push({
-        success: false,
-        message: `Estabelecimento ${dadosDosEstabelecimentos.Nome} não encontrado`,
-      });
-      continue;
+    if (estabelecimentosQueFaltaCriarNoBanco.length > 0) {
+      for await (const estabelecimento of estabelecimentosQueFaltaCriarNoBanco) {
+        await tx.estabelecimento.create({
+          data: {
+            name: estabelecimento.Nome,
+            site,
+            empresa: {
+              connect: {
+                name: company,
+              },
+            },
+            localidade: {
+              connect: {
+                name: estabelecimento.Localidade,
+              },
+            },
+            companies: {
+              connect: {
+                id: 1,
+              },
+            },
+          },
+        });
+      }
     }
+    const todosEstabelecimentosDoBanco = await tx.estabelecimento.findMany({
+      where: {
+        empresa: {
+          name: company,
+        },
+      },
+    });
 
-    const { success, message } = await registerReportLoteria(
-      estabelecimentoExist.id as number,
-      weekReference,
-      site,
-      dadosDosEstabelecimentos.Vendas,
-      dadosDosEstabelecimentos.Comissão,
-      dadosDosEstabelecimentos["Prêmios Pagos"],
-      dadosDosEstabelecimentos.Líquido,
-      importacaoId,
-      estabelecimentoExist.matrizId as number,
-    );
+    for await (const relatorio of file) {
+      let estabelecimento = todosEstabelecimentosDoBanco.find(
+        (item) => item.name === relatorio.Nome,
+      );
+      if (typeof estabelecimento?.id !== "number") {
+        estabelecimento = await tx.estabelecimento.create({
+          data: {
+            name: relatorio.Nome,
+            site,
+            empresa: {
+              connect: {
+                name: company,
+              },
+            },
+            companies: {
+              connect: {
+                id: 1,
+              },
+            },
+          },
+        });
+      }
+      const { inicioDoCiclo, finalDoCiclo } =
+        obterInicioEFimDoCiclo(weekReference);
+      const ciclo = await tx.ciclo.findFirst({
+        where: {
+          establishmentId: estabelecimento.id,
+          reference_date: {
+            gte: inicioDoCiclo,
+            lte: finalDoCiclo,
+          },
+        },
+      });
 
-    results.push({ success, message });
+      if (!ciclo?.id) {
+        await tx.ciclo.create({
+          data: {
+            reference_date: new Date(weekReference),
+            status: "PENDENTE",
+            establishmentId: estabelecimento.id,
+          },
+        });
+      }
+
+      await tx.vendas.create({
+        data: {
+          establishmentId: estabelecimento.id,
+          referenceDate: new Date(weekReference),
+          quantity: 0,
+          value: relatorio.Vendas,
+          importacaoId,
+          site,
+        },
+      });
+
+      await tx.comissao.create({
+        data: {
+          establishmentId: estabelecimento.id,
+          referenceDate: new Date(weekReference),
+          value: relatorio.Comissão,
+          importacaoId,
+          site,
+        },
+      });
+
+      await tx.premios.create({
+        data: {
+          referenceDate: new Date(weekReference),
+          establishmentId: estabelecimento.id,
+          value: relatorio["Prêmios Pagos"],
+          site,
+          importacaoId,
+        },
+      });
+
+      await tx.liquido.create({
+        data: {
+          referenceDate: new Date(weekReference),
+          establishmentId: estabelecimento.id,
+          value: relatorio.Líquido,
+          importacaoId,
+          site,
+        },
+      });
+
+      const caixa = await tx.caixa.findFirst({
+        where: {
+          referenceDate: new Date(weekReference),
+          establishmentId: estabelecimento.id,
+        },
+      });
+      const { startOfDay } = obterDiaAnterior(weekReference);
+      const caixaDoDiaAnterior = await tx.caixa.findFirst({
+        where: {
+          referenceDate: startOfDay,
+          establishmentId: estabelecimento.id,
+        },
+      });
+      if (!caixa?.id) {
+        await tx.caixa.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimento.id,
+            total: relatorio.Líquido + (caixaDoDiaAnterior?.total || 0),
+            importacaoId,
+            status: "PENDENTE",
+            value_futebol: relatorio.Líquido,
+            futebol: site,
+          },
+        });
+      } else {
+        await tx.caixa.update({
+          where: {
+            id: caixa.id,
+          },
+          data: {
+            total: {
+              increment: relatorio.Líquido,
+            },
+            value_futebol: {
+              increment: relatorio.Líquido,
+            },
+          },
+        });
+      }
+    }
+    return { success: true, message: "Importado com sucesso" };
+  } catch (error) {
+    if (
+      error instanceof Error ||
+      error instanceof SyntaxError ||
+      error instanceof TypeError ||
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError ||
+      error instanceof Prisma.PrismaClientRustPanicError ||
+      error instanceof Prisma.PrismaClientValidationError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError ||
+      error instanceof Prisma.PrismaClientRustPanicError ||
+      error instanceof Prisma.PrismaClientValidationError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError
+    ) {
+      return { success: false, message: error.message };
+    } else {
+      return { success: false, message: "Error desconhecido" };
+    }
   }
-
-  if (results.some((result) => !result.success)) {
-    return {
-      success: false,
-      message: "Algo deu errado ao importar os dados gravarDadosLoteria",
-    };
-  }
-
-  return { success: true, message: "Importado com sucesso" };
 };

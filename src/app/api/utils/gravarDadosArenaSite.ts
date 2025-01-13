@@ -42,6 +42,11 @@ export const gravarDadosArenaSite = async (
                     name: company,
                   },
                 },
+                companies: {
+                  connect: {
+                    id: 1,
+                  },
+                },
               },
             });
             resultados_criados.push(result);
