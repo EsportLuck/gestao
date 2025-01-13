@@ -1,4 +1,4 @@
-export function obterDiaAnterior(date: string): {
+export function obterDiaAnterior(date: string | Date): {
   startOfDay: Date;
   endOfDay: Date;
 } {
