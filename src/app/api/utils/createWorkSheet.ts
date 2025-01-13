@@ -15,6 +15,11 @@ export const createWorkSheet = async (file: File, tipo?: string) => {
     dataFile = xlsxReader.read(bufferData, {
       type: "buffer",
     });
+    dataFile = xlsxReader.readFile(pathFile, {
+      raw: true,
+    });
+    const worksheet = dataFile.Sheets[dataFile.SheetNames[0]];
+    return worksheet;
   }
   if (
     tipo === "4712 - arena sportluck" ||
