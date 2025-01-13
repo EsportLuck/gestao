@@ -1,10 +1,11 @@
 import { TReportFratec } from "@/app/api/v1/types";
+import { TFileEstrutura } from "..";
 
 export const filterEstablishmentsWithoutSales = (
-  estabelecimentos: TReportFratec[],
+  estabelecimentos: TFileEstrutura[],
 ) => {
   return estabelecimentos.filter((item) => {
-    if (item.Vendas === 0 && item.Líquido === 0) return false;
+    if (item.Vendas === "0,00" && item.Líquido === "0,00") return false;
     else return true;
   });
 };
