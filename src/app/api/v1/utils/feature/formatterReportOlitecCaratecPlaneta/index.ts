@@ -6,8 +6,20 @@ import { fixUnnecessarySpaces } from "./utils/fixUnnecessarySpaces";
 import { TOlitecCaratecPlanetaCell } from "@/app/api/v1/types";
 import { xlsxReader } from "@/app/api/controller";
 
-export const formatterReportOlitecCaratecPlaneta = (worksheet: WorkSheet) => {
+export type TReportJogoDoBicho = {
+  Estabelecimento: string;
+  Quantidade: number;
+  Vendas: number;
+  Comissão: number;
+  Prêmios: number;
+  Líquido: number;
+};
+
+export const formatterReportOlitecCaratecPlaneta = (
+  worksheet: WorkSheet,
+): TReportJogoDoBicho[] => {
   const json = xlsxReader.toJson(worksheet);
+
   const reportWithKeys = changeKeysObjectJogoDoBicho(json);
   const estabelecimentos = getLinesThatStartWithSixNumbers(reportWithKeys);
   const estabelecimentosWithSales =
@@ -17,5 +29,38 @@ export const formatterReportOlitecCaratecPlaneta = (worksheet: WorkSheet) => {
     estabelecimentosWithSales as TOlitecCaratecPlanetaCell[],
   );
 
-  return estabelecimentosFormatados;
+  const obterValoresEmFormatoParaSalvarNoBanco = estabelecimentosFormatados.map(
+    (item) => {
+      const Comissão = Number((item.Vendas * 0.2 * 100).toFixed(0));
+      const PrêmiosPagos = Number(
+        ((item["Pgto."] - item.Vendas * 0.2) * 100).toFixed(0),
+      );
+      return {
+        Estabelecimento: item.Ponto,
+        Quantidade: 0,
+        Vendas: Number((item.Vendas * 100).toFixed(0)),
+        Comissão,
+        Prêmios: Math.abs(PrêmiosPagos),
+        Líquido: Number((item.Líquido * 100).toFixed(0)),
+      };
+    },
+  );
+  const validarValores = obterValoresEmFormatoParaSalvarNoBanco.every(
+    (item) => {
+      if (
+        typeof item.Estabelecimento === "string" &&
+        item.Quantidade === 0 &&
+        typeof item.Vendas === "number" &&
+        typeof item.Comissão === "number" &&
+        typeof item["Prêmios"] === "number" &&
+        typeof item.Líquido === "number"
+      )
+        return true;
+      else return false;
+    },
+  );
+  if (!validarValores) {
+    return [];
+  }
+  return obterValoresEmFormatoParaSalvarNoBanco;
 };
