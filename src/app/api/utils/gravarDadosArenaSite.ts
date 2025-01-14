@@ -53,82 +53,68 @@ export const gravarDadosArenaSite = async (
           }
         }
 
-        const estabelecimentosQuePrecisamSerConsultadosNoBanco = file.filter(
-          (estabelecimento) => {
-            if (resultados_criados.length === 0) {
-              return true;
-            }
-
-            return !resultados_criados.find(
-              (item) => item.name === estabelecimento.estabelecimento,
-            );
-          },
-        );
         const consultarNoBanco = await tx.estabelecimento.findMany({
           where: {
+            empresa: {
+              name: company,
+            },
             name: {
-              in: estabelecimentosQuePrecisamSerConsultadosNoBanco.map(
-                (item) => item.estabelecimento,
-              ),
+              in: file.map((item) => item.estabelecimento),
             },
           },
         });
 
-        const dadosDosEstabelecimentosNoBancoDeDados = [
-          ...resultados_criados,
-          ...consultarNoBanco,
-        ];
-        for await (const dado of file) {
-          const dadosDoEstabelecimentoNoBancoDeDados =
-            dadosDosEstabelecimentosNoBancoDeDados.find(
-              (item) => item.name === dado.estabelecimento,
-            );
-          if (!dadosDoEstabelecimentoNoBancoDeDados) {
+        for await (const relatorio of file) {
+          const estabelecimento = consultarNoBanco.find(
+            (item) => item.name === relatorio.estabelecimento,
+          );
+          if (!estabelecimento) {
             return {
               success: false,
               message: "Algo deu errado na busca do estabelecimento",
             };
           }
+          const validarComissaoRetida = estabelecimento.comissao_retida;
           await tx.vendas.create({
             data: {
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
               referenceDate: new Date(weekReference),
-              value: dado.vendas,
+              value: relatorio.vendas,
               site,
-              quantity: dado.quantidade,
+              quantity: relatorio.quantidade,
               importacaoId,
             },
           });
           await tx.comissao.create({
             data: {
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
               referenceDate: new Date(weekReference),
-              value: dado.comissao,
+              value: relatorio.comissao,
               site,
               importacaoId,
             },
           });
           await tx.premios.create({
             data: {
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
               referenceDate: new Date(weekReference),
-              value: dado.premios,
+              value: relatorio.premios,
               site,
               importacaoId,
             },
           });
           await tx.liquido.create({
             data: {
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
               referenceDate: new Date(weekReference),
-              value: dado.liquido,
+              value: relatorio.liquido,
               site,
               importacaoId,
             },
           });
           const ultimoCaixa = await tx.caixa.findFirst({
             where: {
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
             },
             orderBy: {
               referenceDate: "desc",
@@ -141,7 +127,7 @@ export const gravarDadosArenaSite = async (
                 gte,
                 lte,
               },
-              establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+              establishmentId: estabelecimento.id,
             },
           });
 
@@ -149,7 +135,7 @@ export const gravarDadosArenaSite = async (
             await tx.ciclo.create({
               data: {
                 reference_date: formatarData(weekReference.toISOString()),
-                establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+                establishmentId: estabelecimento.id,
                 status: "PENDENTE",
               },
             });
@@ -161,14 +147,16 @@ export const gravarDadosArenaSite = async (
           ) {
             await tx.caixa.create({
               data: {
-                establishmentId: dadosDoEstabelecimentoNoBancoDeDados.id,
+                establishmentId: estabelecimento.id,
                 referenceDate: new Date(weekReference),
-                total: dadosDoEstabelecimentoNoBancoDeDados.comissao_retida
-                  ? dado.liquido + (ultimoCaixa?.total || 0) + dado.comissao
-                  : dado.liquido + (ultimoCaixa?.total || 0),
+                total: validarComissaoRetida
+                  ? relatorio.liquido +
+                    (ultimoCaixa?.total || 0) +
+                    relatorio.comissao
+                  : relatorio.liquido + (ultimoCaixa?.total || 0),
                 importacaoId,
                 status: "PENDENTE",
-                value_futebol: dado.liquido,
+                value_futebol: relatorio.liquido,
               },
             });
           } else {
@@ -178,13 +166,12 @@ export const gravarDadosArenaSite = async (
               },
               data: {
                 value_futebol: {
-                  increment: dado.liquido,
+                  increment: relatorio.liquido,
                 },
                 total: {
-                  increment:
-                    dadosDoEstabelecimentoNoBancoDeDados.comissao_retida
-                      ? dado.liquido + dado.comissao
-                      : dado.liquido,
+                  increment: validarComissaoRetida
+                    ? relatorio.liquido + relatorio.comissao
+                    : relatorio.liquido,
                 },
               },
             });
