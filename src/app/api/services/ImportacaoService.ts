@@ -20,7 +20,6 @@ import {
   reportSites,
 } from "@/app/api/v1/utils/strategy";
 import {
-  TOlitecCaratecPlanetaCell,
   TReportFratec,
   IFormattedReportSportNet,
   IReportVip,
@@ -37,9 +36,11 @@ import {
 import { gravarDadosBingo } from "../utils/gravarDadosBingo";
 import { prisma } from "@/services/prisma";
 import { obterInicioEFimDoCiclo } from "../v1/utils/obterInicioEFimDoCiclo";
+import { obterDiaAnterior } from "../v1/utils/obterDiaAnterior";
+import { TReportJogoDoBicho } from "../v1/utils/feature";
 
 export type TFile =
-  | TOlitecCaratecPlanetaCell[]
+  | TReportJogoDoBicho[]
   | TReportFratec[]
   | IFormattedReportSportNet[]
   | IReportVip[]
@@ -167,7 +168,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
-    tx: Prisma.TransactionClient | undefined,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -192,7 +193,7 @@ export class ImportacaoService implements IImportacaoService {
     return { success, message };
   }
   private async salvarRelatorioJogoDoBichoNoBanco(
-    file: TOlitecCaratecPlanetaCell[],
+    file: TReportJogoDoBicho[],
     site: keyof FormatterFunctions,
     weekReference: Date,
     company: string,
@@ -201,6 +202,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -215,6 +217,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     );
     if (!success) return { success: false, message };
     return { success, message };
@@ -230,6 +233,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -244,6 +248,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     );
     if (!success) return { success: false, message };
     return { success, message };
@@ -296,6 +301,12 @@ export class ImportacaoService implements IImportacaoService {
                     name: company,
                   },
                 },
+                companies: {
+                  connect: {
+                    id: 1,
+                  },
+                },
+
                 site,
               },
             });
@@ -307,6 +318,9 @@ export class ImportacaoService implements IImportacaoService {
             where: {
               empresa: {
                 name: company,
+              },
+              name: {
+                in: file.map((item) => item.Estabelecimento),
               },
             },
           });
@@ -323,6 +337,11 @@ export class ImportacaoService implements IImportacaoService {
                 empresa: {
                   connect: {
                     name: company,
+                  },
+                },
+                companies: {
+                  connect: {
+                    id: 1,
                   },
                 },
               },
@@ -395,14 +414,20 @@ export class ImportacaoService implements IImportacaoService {
               establishmentId: estabelecimento.id,
             },
           });
-
+          const { startOfDay } = obterDiaAnterior(weekReference);
+          const caixaDoDiaAnterior = await tx.caixa.findFirst({
+            where: {
+              referenceDate: startOfDay,
+              establishmentId: estabelecimento.id,
+            },
+          });
           if (!caixa?.id) {
             await tx.caixa.create({
               data: {
                 referenceDate: new Date(weekReference),
                 importacaoId,
                 establishmentId: estabelecimento.id,
-                total: dados.Líquido,
+                total: dados.Líquido + (caixaDoDiaAnterior?.total || 0),
                 status: "PENDENTE",
               },
             });
@@ -482,6 +507,11 @@ export class ImportacaoService implements IImportacaoService {
                       name: company,
                     },
                   },
+                  companies: {
+                    connect: {
+                      id: 1,
+                    },
+                  },
                 },
               });
             }
@@ -491,6 +521,9 @@ export class ImportacaoService implements IImportacaoService {
               where: {
                 empresa: {
                   name: company,
+                },
+                name: {
+                  in: file.map((item) => item.Estabelecimento),
                 },
               },
             });
@@ -506,6 +539,11 @@ export class ImportacaoService implements IImportacaoService {
                   empresa: {
                     connect: {
                       name: company,
+                    },
+                  },
+                  companies: {
+                    connect: {
+                      id: 1,
                     },
                   },
                   site,
@@ -581,13 +619,19 @@ export class ImportacaoService implements IImportacaoService {
                 establishmentId: estabelecimentoNoBanco.id,
               },
             });
-
+            const { startOfDay } = obterDiaAnterior(weekReference);
+            const caixaDoDiaAnterior = await tx.caixa.findFirst({
+              where: {
+                referenceDate: startOfDay,
+                establishmentId: estabelecimentoNoBanco.id,
+              },
+            });
             if (!caixa?.id) {
               await tx.caixa.create({
                 data: {
                   referenceDate: new Date(weekReference),
                   establishmentId: estabelecimentoNoBanco.id,
-                  total: relatorio.Líquido,
+                  total: relatorio.Líquido + (caixaDoDiaAnterior?.total || 0),
                   importacaoId,
                   status: "PENDENTE",
                   value_futebol: relatorio.Líquido,
@@ -640,6 +684,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -653,8 +698,9 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco || [],
       secaoNoBanco || [],
       importacaoId,
+      tx,
     );
-    if (!success) return { success, message };
+    if (!success) return { success: false, message };
     return { success, message: "Importado com sucesso" };
   }
 
@@ -697,7 +743,7 @@ export class ImportacaoService implements IImportacaoService {
     localidadesNoBanco: Localidade[] | null,
     secaoNoBanco: Secao[] | null,
     importacaoId: number,
-    tx: Prisma.TransactionClient | undefined,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
@@ -757,7 +803,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco: Localidade[] | null,
       secaoNoBanco: Secao[] | null,
       importacaoId: number,
-      tx: Prisma.TransactionClient | undefined,
+      tx: Prisma.TransactionClient,
     ) => Promise<
       | { success: true; message: "Importado com sucesso" }
       | { success: false; message: string }
@@ -817,6 +863,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) =>
       await this.salvarRelatorioAtenaNoBanco(
         file as TReportAtena[],
@@ -828,6 +875,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       ),
     [ReportCategory.JOGO_DO_BICHO]: async (
       file,
@@ -839,9 +887,10 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) =>
       await this.salvarRelatorioJogoDoBichoNoBanco(
-        file as TOlitecCaratecPlanetaCell[],
+        file as TReportJogoDoBicho[],
         site,
         weekReference,
         company,
@@ -850,6 +899,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       ),
     [ReportCategory.LOTERIA]: async (
       file,
@@ -861,6 +911,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) =>
       await this.salvarRelatorioLoteriaNoBanco(
         file as TReportFratec[],
@@ -872,6 +923,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       ),
     [ReportCategory.ARENA_SITE]: async (
       file,

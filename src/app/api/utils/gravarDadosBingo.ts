@@ -165,9 +165,6 @@ export const gravarDadosBingo = async (
       const estabelecimentosContitosNoBancoEArquivo =
         await tx.estabelecimento.findMany({
           where: {
-            empresa: {
-              name: company,
-            },
             name: {
               in: estabelecimentosParaCriarNoBanco.map(
                 (item) => item.estabelecimento,
@@ -181,7 +178,7 @@ export const gravarDadosBingo = async (
           (item) => item.name === dadosParaGravarNoBanco.Estabelecimento,
         );
 
-        if (typeof estabelecimento?.id === "undefined") {
+        if (typeof estabelecimento?.id !== "number") {
           estabelecimento = await tx.estabelecimento.create({
             data: {
               name: dadosParaGravarNoBanco.Estabelecimento,
