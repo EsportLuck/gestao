@@ -1,4 +1,4 @@
-import { Ciclo } from "@prisma/client";
+import { Ciclo, Prisma, PrismaClient } from "@prisma/client";
 import { ICicloService } from "@/app/api/contracts/ICicloService";
 import { ICicloRepository } from "@/app/api/contracts/ICicloRepository";
 import { obterInicioEFimDoCiclo } from "@/app/api/v1/utils/obterInicioEFimDoCiclo";
@@ -11,6 +11,7 @@ export class CicloService implements ICicloService {
     establishmentId: number,
     reference_date: Date,
     matrizId: number | null,
+    tx: Prisma.TransactionClient | PrismaClient,
   ): Promise<void> {
     const { inicioDoCiclo, finalDoCiclo } = obterInicioEFimDoCiclo(
       formatarData(reference_date.toISOString()),
@@ -29,10 +30,10 @@ export class CicloService implements ICicloService {
             finalDoCiclo,
           );
         if (cicloExistenteMatriz) return;
-        await this.cicloRepository.criar(matrizId, reference_date);
+        await this.cicloRepository.criar(matrizId, reference_date, tx);
       }
       if (cicloExistente) return;
-      await this.cicloRepository.criar(establishmentId, reference_date);
+      await this.cicloRepository.criar(establishmentId, reference_date, tx);
     } catch (error) {
       console.error("criar cicloService criar", error);
     }
