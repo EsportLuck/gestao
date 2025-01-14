@@ -1,16 +1,10 @@
 import { Localidade, Prisma, Secao } from "@prisma/client";
 import { EstabelecimentoSelecionado } from "@/app/api/contracts";
-import { EstabelecimentoService, LocalidadeService } from "@/app/api/services";
 import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
 import { TReportFratec } from "@/app/api/v1/types";
-import {
-  EstabelecimentoRepository,
-  LocalidadeRepository,
-} from "@/app/api/repositories";
-import { prisma } from "@/services/prisma";
-import { registerReportLoteria } from "../v1/utils/create";
 import { obterDiaAnterior } from "../v1/utils/obterDiaAnterior";
 import { obterInicioEFimDoCiclo } from "../v1/utils/obterInicioEFimDoCiclo";
+import { formatarData } from "@/utils/formatarData";
 
 export const gravarDadosLoteria = async (
   file: TReportFratec[],
@@ -19,7 +13,7 @@ export const gravarDadosLoteria = async (
   company: string,
   _user: string,
   estabelecimentosNoBanco: EstabelecimentoSelecionado[] | null,
-  localidadesNoBanco: Localidade[] | null,
+  _localidadesNoBanco: Localidade[] | null,
   _secaoNoBanco: Secao[] | null,
   importacaoId: number,
   tx: Prisma.TransactionClient,
@@ -83,6 +77,9 @@ export const gravarDadosLoteria = async (
         empresa: {
           name: company,
         },
+        name: {
+          in: file.map((item) => item.Nome),
+        },
       },
     });
 
@@ -108,6 +105,8 @@ export const gravarDadosLoteria = async (
           },
         });
       }
+      const validarComissaoRetida = estabelecimento.comissao_retida;
+      const matrizId = estabelecimento.matrizId;
       const { inicioDoCiclo, finalDoCiclo } =
         obterInicioEFimDoCiclo(weekReference);
       const ciclo = await tx.ciclo.findFirst({
@@ -145,7 +144,7 @@ export const gravarDadosLoteria = async (
         data: {
           establishmentId: estabelecimento.id,
           referenceDate: new Date(weekReference),
-          value: relatorio.Comissão,
+          value: validarComissaoRetida ? 0 : relatorio.Comissão,
           importacaoId,
           site,
         },
@@ -185,11 +184,12 @@ export const gravarDadosLoteria = async (
         },
       });
       if (!caixa?.id) {
+        const total = relatorio.Líquido + (caixaDoDiaAnterior?.total || 0);
         await tx.caixa.create({
           data: {
             referenceDate: new Date(weekReference),
             establishmentId: estabelecimento.id,
-            total: relatorio.Líquido + (caixaDoDiaAnterior?.total || 0),
+            total: validarComissaoRetida ? total + relatorio.Comissão : total,
             importacaoId,
             status: "PENDENTE",
             value_futebol: relatorio.Líquido,
@@ -203,13 +203,79 @@ export const gravarDadosLoteria = async (
           },
           data: {
             total: {
-              increment: relatorio.Líquido,
+              increment: validarComissaoRetida
+                ? relatorio.Líquido + relatorio.Comissão
+                : relatorio.Líquido,
             },
             value_futebol: {
               increment: relatorio.Líquido,
             },
           },
         });
+      }
+
+      if (typeof matrizId === "number") {
+        const caixaMatriz = await tx.caixa.findFirst({
+          where: {
+            referenceDate: new Date(weekReference),
+            establishmentId: matrizId,
+          },
+        });
+        const caixaDoDiaAnteriorMatriz = await tx.caixa.findFirst({
+          where: {
+            referenceDate: startOfDay,
+            establishmentId: matrizId,
+          },
+        });
+        const ciclo = await tx.ciclo.findFirst({
+          where: {
+            establishmentId: matrizId,
+            reference_date: {
+              gte: inicioDoCiclo,
+              lte: finalDoCiclo,
+            },
+          },
+        });
+        if (typeof ciclo?.id !== "number") {
+          await tx.ciclo.create({
+            data: {
+              reference_date: formatarData(weekReference.toISOString()),
+              establishmentId: matrizId,
+              status: "PENDENTE",
+            },
+          });
+        }
+        if (typeof caixaMatriz?.id !== "number") {
+          const total =
+            relatorio.Líquido + (caixaDoDiaAnteriorMatriz?.total || 0);
+          await tx.caixa.create({
+            data: {
+              referenceDate: weekReference,
+              status: "PENDENTE",
+              total: validarComissaoRetida ? total + relatorio.Comissão : total,
+              importacaoId,
+              value_loteria: relatorio.Líquido,
+              loteria: site,
+              establishmentId: matrizId,
+            },
+          });
+        } else {
+          await tx.caixa.update({
+            where: {
+              id: caixaMatriz.id,
+            },
+            data: {
+              total: {
+                increment: validarComissaoRetida
+                  ? relatorio.Líquido + relatorio.Comissão
+                  : relatorio.Líquido,
+              },
+              value_loteria: {
+                increment: relatorio.Líquido,
+              },
+            },
+          });
+        }
       }
     }
     return { success: true, message: "Importado com sucesso" };
