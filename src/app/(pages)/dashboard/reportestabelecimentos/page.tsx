@@ -1,7 +1,7 @@
 import React from "react";
 
 import { TitlePage } from "@/components/TitlePage";
-import { EstablishmentReportTable } from "@/components/template";
+import EstablishmentReportTable from "@/components/template/establishment-report-table";
 
 const ReportEstabelecimentos = async () => {
   return (
