@@ -14,8 +14,6 @@ export const createWorkSheet = async (file: File, tipo?: string) => {
     const bufferData = Buffer.from(fileData);
     dataFile = xlsxReader.read(bufferData, {
       type: "buffer",
-    });
-    dataFile = xlsxReader.readFile(pathFile, {
       raw: true,
     });
     const worksheet = dataFile.Sheets[dataFile.SheetNames[0]];

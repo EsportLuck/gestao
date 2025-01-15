@@ -11,11 +11,19 @@ export const formatterData = (estabelecimentos: TAtena[]) => {
       Localidade: estabelecimento.Localidade.trim(),
       Seção: estabelecimento.Seção.trim(),
       Estabelecimento: estabelecimento.Estabelecimento.trim(),
-      Quantidade: stringToNumber(estabelecimento.Quantidade),
-      Vendas: stringToNumber(estabelecimento.Vendas),
-      Comissão: stringToNumber(estabelecimento.Comissão),
-      "Prêmios/Saques": stringToNumber(estabelecimento["Prêmios/Saques"]),
-      Líquido: stringToNumber(estabelecimento.Líquido),
+      Quantidade: Number(
+        (stringToNumber(estabelecimento.Quantidade) * 100).toFixed(0),
+      ),
+      Vendas: Number((stringToNumber(estabelecimento.Vendas) * 100).toFixed(0)),
+      Comissão: Number(
+        (stringToNumber(estabelecimento.Comissão) * 100).toFixed(0),
+      ),
+      "Prêmios/Saques": Number(
+        (stringToNumber(estabelecimento["Prêmios/Saques"]) * 100).toFixed(0),
+      ),
+      Líquido: Number(
+        (stringToNumber(estabelecimento.Líquido) * 100).toFixed(0),
+      ),
     };
   });
 };

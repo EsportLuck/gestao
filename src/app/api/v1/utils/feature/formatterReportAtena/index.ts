@@ -13,5 +13,23 @@ export const formatterReportAtena = (worksheet: xlsx.WorkSheet) => {
     (item) => item["Centro de Custo"] !== "Total",
   );
   const reportFormatted: TReportAtena[] = formatterData(filterValuesUndefined);
+  if (!validarValores(reportFormatted)) return [];
   return reportFormatted;
+};
+
+const validarValores = (report: TReportAtena[]) => {
+  return report.every((item) => {
+    if (
+      typeof item.Localidade === "string" &&
+      typeof item.Seção === "string" &&
+      typeof item.Estabelecimento === "string" &&
+      typeof item.Quantidade === "number" &&
+      typeof item.Vendas === "number" &&
+      typeof item.Comissão === "number" &&
+      typeof item["Prêmios/Saques"] === "number" &&
+      typeof item.Líquido === "number"
+    )
+      return true;
+    else return false;
+  });
 };
