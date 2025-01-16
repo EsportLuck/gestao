@@ -135,6 +135,8 @@ model Lancamentos {
   updatedAt       DateTime        @updatedAt
   referenceDate   DateTime        @db.Date
   value           Int
+  empresa         Empresa         @relation(fields: [empresaId], references: [id])
+  empresaId       Int
   establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
   type            String
@@ -315,8 +317,8 @@ model Empresa {
   Secao           Secao[]
   Rota            Rota[]
   Estabelecimento Estabelecimento[]
-
-  Supervisor Supervisor[]
+  Supervisor      Supervisor[]
+  Lancamentos     Lancamentos[]
 }
 
 model Importacao {
