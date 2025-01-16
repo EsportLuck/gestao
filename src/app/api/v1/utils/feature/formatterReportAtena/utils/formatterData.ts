@@ -11,9 +11,7 @@ export const formatterData = (estabelecimentos: TAtena[]) => {
       Localidade: estabelecimento.Localidade.trim(),
       Seção: estabelecimento.Seção.trim(),
       Estabelecimento: estabelecimento.Estabelecimento.trim(),
-      Quantidade: Number(
-        (stringToNumber(estabelecimento.Quantidade) * 100).toFixed(0),
-      ),
+      Quantidade: estabelecimento.Quantidade,
       Vendas: Number((stringToNumber(estabelecimento.Vendas) * 100).toFixed(0)),
       Comissão: Number(
         (stringToNumber(estabelecimento.Comissão) * 100).toFixed(0),
