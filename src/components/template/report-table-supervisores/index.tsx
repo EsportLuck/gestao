@@ -1,30 +1,21 @@
+"use client";
 import { Supervisor } from "@prisma/client";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
+import { useMemo } from "react";
 
-async function getData(): Promise<Supervisor[]> {
-  try {
-    const response = await fetch(
-      `${process.env.API_URL}/management/supervisores`,
-      {
-        cache: "no-store",
-      },
-    );
-    if (!response.ok) throw new Error("Failed to fetch data");
-    const supervisor: Supervisor[] = await response.json();
+import { useFetch } from "@/hooks/useFetch";
 
-    if (supervisor.length === 0) return [];
-    return supervisor;
-  } catch (err) {
-    return [];
-  }
-}
+export default function ReportTableSupervisores() {
+  const data = useFetch<Supervisor[]>("/api/v1/management/supervisores");
 
-export async function ReportTableSupervisores() {
-  const data = await getData();
+  const supervisores = useMemo<Supervisor[]>(
+    () => data.data ?? [],
+    [data.data],
+  );
   return (
     <div className="container mx-auto mt-10 p-0">
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={supervisores} />
     </div>
   );
 }

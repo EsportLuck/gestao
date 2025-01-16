@@ -1,97 +1,90 @@
+"use client";
 import ModalProvider from "@/context/modalEstabelecimentosContext";
 import { Action } from "./component";
 import { Description } from "./component/description";
 import { TituloSupervisor } from "./component/titulo-supervisor";
-interface IResponse {
-  id: number;
-  name: string;
-}
-function convertId(data: IResponse[]) {
-  if (data.length === 0) return;
-  return data.map((item) => {
-    return {
-      id: item.id.toString(),
-      name: item.name,
-    };
-  });
+import { useFetch } from "@/hooks/useFetch";
+import { Localidade, Rota, Secao, Supervisor } from "@prisma/client";
+import { useMemo } from "react";
+
+interface SupervisorDetalhado extends Supervisor {
+  localidade: string;
+  secao: string;
+  criado: string;
 }
 
-async function obterSupervisor(id: string) {
-  try {
-    const response = await fetch(
-      `${process.env.API_URL}/management/supervisores/detalhar?id=${id}`,
-      {
-        cache: "no-store",
-      },
-    );
+export default function DetalhesDoSupervisor({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const fetchSupervisor = useFetch<SupervisorDetalhado>(
+    `/api/v1/management/supervisores/detalhar?id=${params.slug}`,
+  );
+  const fetchLocalidades = useFetch<Partial<Localidade[]>>(
+    `/api/v1/management/locations`,
+  );
+  const fetchSecao = useFetch<Partial<Secao[]>>(`/api/v1/management/sections`);
+  const fetchRotas = useFetch<Partial<Rota[]>>(`/api/v1/management/routes`);
+  const supervisor = useMemo(() => {
+    if (!fetchSupervisor.data) return undefined;
+    return fetchSupervisor.data;
+  }, [fetchSupervisor.data]);
 
-    if (!response.ok) throw new Error("Failed to fetch data");
-    const supervisor = await response.json();
-    return supervisor;
-  } catch (err) {
-    return [];
-  }
-}
-async function getData() {
-  try {
-    const [locationsResponse, sectionsReponse, routesResponse] =
-      await Promise.all([
-        fetch(`${process.env.API_URL}/management/locations`, {
-          cache: "no-store",
-        }),
-        fetch(`${process.env.API_URL}/management/sections`, {
-          cache: "no-store",
-        }),
-        fetch(`${process.env.API_URL}/management/routes`, {
-          cache: "no-store",
-        }),
-      ]);
-    if (!locationsResponse.ok) throw new Error("Failed to fetch data");
-    if (!sectionsReponse.ok) throw new Error("Failed to fetch data");
-    if (!routesResponse.ok) throw new Error("Failed to fetch data");
-    let location: IResponse[] = await locationsResponse.json();
-    let section: IResponse[] = await sectionsReponse.json();
-    let route: IResponse[] = await routesResponse.json();
-
-    const locations = convertId(location);
-    const sections = convertId(section);
-    const routes = convertId(route);
-
-    return { locations, sections, routes };
-  } catch (err) {
-    return { estabelecimentos: [], locations: [], sections: [], routes: [] };
-  }
-}
-
-export default async function Page({ params }: { params: { slug: string } }) {
-  const data = await obterSupervisor(params.slug);
-  const manager = await getData();
+  const localidades = useMemo(() => {
+    if (!fetchLocalidades.data) return undefined;
+    return fetchLocalidades.data.map((item) => {
+      return { id: item?.id.toString() as string, name: item?.name as string };
+    });
+  }, [fetchLocalidades.data]);
+  const secao = useMemo(() => {
+    if (!fetchSecao.data) return undefined;
+    return fetchSecao.data.map((item) => {
+      return { id: item?.id.toString() as string, name: item?.name as string };
+    });
+  }, [fetchSecao.data]);
+  const rotas = useMemo(() => {
+    if (!fetchRotas.data) return undefined;
+    return fetchRotas.data.map((item) => {
+      return { id: item?.id.toString() as string, name: item?.name as string };
+    });
+  }, [fetchRotas.data]);
   const definicoesDoSupervisor = [
     {
       title: "Criado",
-      value: data.criado,
+      value: supervisor?.criado,
     },
     {
       title: "Localidade",
-      value: data.localidade.length ? data.localidade : "sem registro",
+      value: supervisor?.localidade.length
+        ? supervisor?.localidade
+        : "sem registro",
     },
     {
       title: "Seção",
-      value: data.secao.length ? data.secao : "sem registro",
+      value: supervisor?.secao.length ? supervisor?.secao : "sem registro",
     },
   ];
 
   return (
     <main className="mt-12">
       <div className="flex justify-between items-center">
-        <TituloSupervisor title={params.slug} name={data.name} />
+        {supervisor ? (
+          <TituloSupervisor
+            title={params.slug}
+            name={supervisor?.name as string}
+          />
+        ) : (
+          <span>Carregando...</span>
+        )}
+
         <div>
           <ModalProvider>
-            <Action
-              localidade={manager.locations}
-              rota={manager.routes}
-              secao={manager.sections}
-            />
+            {localidades && rotas && secao ? (
+              <Action localidade={localidades} rota={rotas} secao={secao} />
+            ) : (
+              <span className="animate-pulse rounded">Carregando...</span>
+            )}
           </ModalProvider>
         </div>
       </div>
@@ -100,7 +93,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           <Description
             key={item.title}
             title={item.title}
-            value={item.value}
+            value={item.value as string}
             id={Number(params.slug)}
           />
         ))}
