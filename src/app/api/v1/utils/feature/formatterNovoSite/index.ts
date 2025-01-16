@@ -34,5 +34,21 @@ export const formatterReportArenaSite = (
       liquido: Number((formatNumber(item.Liquido) * 100).toFixed(0)),
     };
   });
+  if (!validarDados(data)) {
+    return [];
+  }
   return data;
+};
+
+const validarDados = (data: TFormattedReportArenaSite[]) => {
+  return data.every((item) => {
+    return (
+      item.estabelecimento !== undefined &&
+      item.quantidade !== undefined &&
+      !isNaN(item.vendas) &&
+      !isNaN(item.comissao) &&
+      !isNaN(item.premios) &&
+      !isNaN(item.liquido)
+    );
+  });
 };
