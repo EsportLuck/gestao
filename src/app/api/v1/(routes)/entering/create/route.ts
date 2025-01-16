@@ -39,16 +39,6 @@ export async function POST(
   )
     return NextResponse.json({ status: 500, message: "Dados inválidos" });
 
-  const dataLancamento = {
-    data_reference,
-    forma_pagamento,
-    observacao_comprovante,
-    value,
-    tipo,
-    estabelecimentoId: estabelecimentoId.id,
-    recorded_by,
-    comprovante,
-  };
   try {
     const { message } = await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -56,7 +46,25 @@ export async function POST(
           username: recorded_by,
         },
       });
+
       if (!user?.username) return { message: "Usuário não permitido" };
+      const empresa = await tx.empresa.findUnique({
+        where: {
+          name: user.site,
+        },
+      });
+      if (!empresa?.name) return { message: "Empresa não encontrada" };
+      const dataLancamento = {
+        data_reference,
+        forma_pagamento,
+        observacao_comprovante,
+        value,
+        tipo,
+        estabelecimentoId: estabelecimentoId.id,
+        recorded_by,
+        comprovante,
+        empresaId: empresa.id,
+      };
       const lancamento = new Entering(dataLancamento);
       const { message } = await lancamento.create();
 

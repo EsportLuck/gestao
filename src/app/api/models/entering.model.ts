@@ -17,6 +17,7 @@ interface EnteringData {
   status?: "analise" | "aprovado" | "reprovado";
   recorded_by?: string;
   approved_by?: string;
+  empresaId?: number;
 }
 
 export class Entering {
@@ -37,6 +38,7 @@ export class Entering {
         tipo,
         estabelecimentoId,
         recorded_by,
+        empresaId,
       } = this.data;
 
       if (
@@ -47,7 +49,8 @@ export class Entering {
         typeof tipo !== "string" ||
         typeof estabelecimentoId !== "number" ||
         typeof recorded_by !== "string" ||
-        !comprovante
+        !comprovante ||
+        !empresaId
       ) {
         return { message: "Dados inválidos" };
       }
@@ -66,9 +69,10 @@ export class Entering {
           type: tipo,
           establishmentId: estabelecimentoId,
           status: "analise",
-          recorded_by: recorded_by,
+          recorded_by,
           downloadUrl,
           url,
+          empresaId,
         },
       });
 
