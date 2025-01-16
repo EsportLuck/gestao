@@ -263,194 +263,188 @@ export class ImportacaoService implements IImportacaoService {
     _localidadesNoBanco: Localidade[] | null,
     _secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
   > {
     try {
-      const { success, message } = await prisma.$transaction(async (tx) => {
-        const estabelecimentosDoArquivo = file.map((item) => {
-          return {
-            nome: item.Estabelecimento,
-          };
+      const estabelecimentosDoArquivo = file.map((item) => {
+        return {
+          nome: item.Estabelecimento,
+        };
+      });
+
+      const estabelecimentosSemRepetir = Array.from(
+        new Set(estabelecimentosDoArquivo),
+      );
+      const estabelecimentosNaoExistentesNoBancoDeDados =
+        estabelecimentosSemRepetir.filter((estabelecimento) => {
+          if (
+            !!estabelecimentosNoBanco?.find(
+              (item) => item.name === estabelecimento.nome,
+            ) === false
+          ) {
+            return true;
+          } else {
+            return false;
+          }
         });
 
-        const estabelecimentosSemRepetir = Array.from(
-          new Set(estabelecimentosDoArquivo),
-        );
-        const estabelecimentosNaoExistentesNoBancoDeDados =
-          estabelecimentosSemRepetir.filter((estabelecimento) => {
-            if (
-              !!estabelecimentosNoBanco?.find(
-                (item) => item.name === estabelecimento.nome,
-              ) === false
-            ) {
-              return true;
-            } else {
-              return false;
-            }
-          });
-
-        if (estabelecimentosNaoExistentesNoBancoDeDados.length > 0) {
-          for await (const item of estabelecimentosNaoExistentesNoBancoDeDados) {
-            await tx.estabelecimento.create({
-              data: {
-                name: item.nome,
-                empresa: {
-                  connect: {
-                    name: company,
-                  },
-                },
-                companies: {
-                  connect: {
-                    id: 1,
-                  },
-                },
-
-                site,
-              },
-            });
-          }
-        }
-
-        const todosEstabelecimentosNoBancoDeDados =
-          await tx.estabelecimento.findMany({
-            where: {
+      if (estabelecimentosNaoExistentesNoBancoDeDados.length > 0) {
+        for await (const item of estabelecimentosNaoExistentesNoBancoDeDados) {
+          await tx.estabelecimento.create({
+            data: {
+              name: item.nome,
               empresa: {
-                name: company,
+                connect: {
+                  name: company,
+                },
               },
-              name: {
-                in: file.map((item) => item.Estabelecimento),
+              companies: {
+                connect: {
+                  id: 1,
+                },
               },
-            },
-          });
 
-        for await (const dados of file) {
-          let estabelecimento = todosEstabelecimentosNoBancoDeDados.find(
-            (item) => item.name === dados.Estabelecimento,
-          );
-          if (!estabelecimento) {
-            estabelecimento = await tx.estabelecimento.create({
-              data: {
-                name: dados.Estabelecimento,
-                site,
-                empresa: {
-                  connect: {
-                    name: company,
-                  },
-                },
-                companies: {
-                  connect: {
-                    id: 1,
-                  },
-                },
-              },
-            });
-          }
-          const { inicioDoCiclo, finalDoCiclo } = obterInicioEFimDoCiclo(
-            new Date(weekReference),
-          );
-          const resultadoCiclo = await tx.ciclo.findFirst({
-            where: {
-              reference_date: {
-                gte: inicioDoCiclo,
-                lt: finalDoCiclo,
-              },
-              establishment: {
-                name: dados.Estabelecimento,
-              },
+              site,
             },
           });
-          if (!resultadoCiclo?.id) {
-            await tx.ciclo.create({
-              data: {
-                reference_date: new Date(weekReference),
-                establishmentId: estabelecimento.id,
-                status: "PENDENTE",
-              },
-            });
-          }
+        }
+      }
 
-          await tx.vendas.create({
+      const todosEstabelecimentosNoBancoDeDados =
+        await tx.estabelecimento.findMany({
+          where: {
+            empresa: {
+              name: company,
+            },
+            name: {
+              in: file.map((item) => item.Estabelecimento),
+            },
+          },
+        });
+
+      for await (const dados of file) {
+        let estabelecimento = todosEstabelecimentosNoBancoDeDados.find(
+          (item) => item.name === dados.Estabelecimento,
+        );
+        if (!estabelecimento) {
+          estabelecimento = await tx.estabelecimento.create({
             data: {
-              quantity: dados.Quantidade,
-              value: dados.Vendas,
+              name: dados.Estabelecimento,
               site,
-              importacaoId,
-              referenceDate: new Date(weekReference),
-              establishmentId: estabelecimento.id,
-            },
-          });
-          await tx.comissao.create({
-            data: {
-              referenceDate: new Date(weekReference),
-              site,
-              importacaoId,
-              establishmentId: estabelecimento.id,
-              value: dados.Comissão,
-            },
-          });
-          await tx.premios.create({
-            data: {
-              referenceDate: new Date(weekReference),
-              site,
-              importacaoId,
-              establishmentId: estabelecimento.id,
-              value: dados["Prêmios/Saques"],
-            },
-          });
-          await tx.liquido.create({
-            data: {
-              referenceDate: new Date(weekReference),
-              site,
-              importacaoId,
-              establishmentId: estabelecimento.id,
-              value: dados.Líquido,
-            },
-          });
-          const caixa = await tx.caixa.findFirst({
-            where: {
-              referenceDate: new Date(weekReference),
-              establishmentId: estabelecimento.id,
-            },
-          });
-          const { startOfDay } = obterDiaAnterior(weekReference);
-          const caixaDoDiaAnterior = await tx.caixa.findFirst({
-            where: {
-              referenceDate: startOfDay,
-              establishmentId: estabelecimento.id,
-            },
-          });
-          if (!caixa?.id) {
-            await tx.caixa.create({
-              data: {
-                referenceDate: new Date(weekReference),
-                importacaoId,
-                establishmentId: estabelecimento.id,
-                total: dados.Líquido + (caixaDoDiaAnterior?.total || 0),
-                status: "PENDENTE",
-              },
-            });
-          } else {
-            await tx.caixa.update({
-              where: {
-                id: caixa.id,
-              },
-              data: {
-                total: {
-                  increment: dados.Líquido,
+              empresa: {
+                connect: {
+                  name: company,
                 },
               },
-            });
-          }
+              companies: {
+                connect: {
+                  id: 1,
+                },
+              },
+            },
+          });
+        }
+        const { inicioDoCiclo, finalDoCiclo } = obterInicioEFimDoCiclo(
+          new Date(weekReference),
+        );
+        const resultadoCiclo = await tx.ciclo.findFirst({
+          where: {
+            reference_date: {
+              gte: inicioDoCiclo,
+              lt: finalDoCiclo,
+            },
+            establishment: {
+              name: dados.Estabelecimento,
+            },
+          },
+        });
+        if (!resultadoCiclo?.id) {
+          await tx.ciclo.create({
+            data: {
+              reference_date: new Date(weekReference),
+              establishmentId: estabelecimento.id,
+              status: "PENDENTE",
+            },
+          });
         }
 
-        return { success: true, message: "Importado com sucesso" };
-      });
-      if (success) {
-        return { success, message: "Importado com sucesso" };
+        await tx.vendas.create({
+          data: {
+            quantity: dados.Quantidade,
+            value: dados.Vendas,
+            site,
+            importacaoId,
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimento.id,
+          },
+        });
+        await tx.comissao.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            site,
+            importacaoId,
+            establishmentId: estabelecimento.id,
+            value: dados.Comissão,
+          },
+        });
+        await tx.premios.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            site,
+            importacaoId,
+            establishmentId: estabelecimento.id,
+            value: dados["Prêmios/Saques"],
+          },
+        });
+        await tx.liquido.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            site,
+            importacaoId,
+            establishmentId: estabelecimento.id,
+            value: dados.Líquido,
+          },
+        });
+        const caixa = await tx.caixa.findFirst({
+          where: {
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimento.id,
+          },
+        });
+        const { startOfDay } = obterDiaAnterior(weekReference);
+        const caixaDoDiaAnterior = await tx.caixa.findFirst({
+          where: {
+            referenceDate: startOfDay,
+            establishmentId: estabelecimento.id,
+          },
+        });
+        if (!caixa?.id) {
+          await tx.caixa.create({
+            data: {
+              referenceDate: new Date(weekReference),
+              importacaoId,
+              establishmentId: estabelecimento.id,
+              total: dados.Líquido + (caixaDoDiaAnterior?.total || 0),
+              status: "PENDENTE",
+            },
+          });
+        } else {
+          await tx.caixa.update({
+            where: {
+              id: caixa.id,
+            },
+            data: {
+              total: {
+                increment: dados.Líquido,
+              },
+            },
+          });
+        }
       }
-      return { success, message };
+      return { success: true, message: "Importado com sucesso" };
     } catch (error) {
       if (
         error instanceof Error ||
@@ -478,186 +472,179 @@ export class ImportacaoService implements IImportacaoService {
     _localidadesNoBanco: Localidade[] | null,
     _secaoNoBanco: Secao[] | null,
     importacaoId: number,
+    tx: Prisma.TransactionClient,
   ): Promise<
     | { success: true; message: "Importado com sucesso" }
     | { success: false; message: string }
   > {
     try {
-      const {
-        success,
-        message,
-      }: { success: true; message: "Importado com sucesso" } =
-        await prisma.$transaction(async (tx) => {
-          const estabelecimentosQueNaoExisteNoBancoDeDados = file?.filter(
-            (estabelecimento) =>
-              estabelecimentosNoBanco?.find(
-                (estabelecimentoNoBanco) =>
-                  estabelecimentoNoBanco.name?.trim().toLowerCase() ===
-                  estabelecimento.Estabelecimento.trim().toLowerCase(),
-              ) === undefined,
-          );
-          if (estabelecimentosQueNaoExisteNoBancoDeDados.length > 0) {
-            for await (const dado of estabelecimentosQueNaoExisteNoBancoDeDados) {
-              await tx.estabelecimento.create({
-                data: {
-                  name: dado.Estabelecimento,
-                  site,
-                  empresa: {
-                    connect: {
-                      name: company,
-                    },
-                  },
-                  companies: {
-                    connect: {
-                      id: 1,
-                    },
-                  },
-                },
-              });
-            }
-          }
-          const todosEstabelecimentosNoBanco =
-            await tx.estabelecimento.findMany({
-              where: {
-                empresa: {
+      const estabelecimentosQueNaoExisteNoBancoDeDados = file?.filter(
+        (estabelecimento) =>
+          estabelecimentosNoBanco?.find(
+            (estabelecimentoNoBanco) =>
+              estabelecimentoNoBanco.name?.trim().toLowerCase() ===
+              estabelecimento.Estabelecimento.trim().toLowerCase(),
+          ) === undefined,
+      );
+      if (estabelecimentosQueNaoExisteNoBancoDeDados.length > 0) {
+        for await (const dado of estabelecimentosQueNaoExisteNoBancoDeDados) {
+          await tx.estabelecimento.create({
+            data: {
+              name: dado.Estabelecimento,
+              site,
+              empresa: {
+                connect: {
                   name: company,
                 },
-                name: {
-                  in: file.map((item) => item.Estabelecimento),
+              },
+              companies: {
+                connect: {
+                  id: 1,
                 },
               },
-            });
+            },
+          });
+        }
+      }
+      const todosEstabelecimentosNoBanco = await tx.estabelecimento.findMany({
+        where: {
+          empresa: {
+            name: company,
+          },
+          name: {
+            in: file.map((item) => item.Estabelecimento),
+          },
+        },
+      });
 
-          for await (const relatorio of file) {
-            let estabelecimentoNoBanco = todosEstabelecimentosNoBanco.find(
-              (dado) => dado.name === relatorio.Estabelecimento,
-            );
-            if (!estabelecimentoNoBanco?.id) {
-              estabelecimentoNoBanco = await tx.estabelecimento.create({
-                data: {
-                  name: relatorio.Estabelecimento,
-                  empresa: {
-                    connect: {
-                      name: company,
-                    },
-                  },
-                  companies: {
-                    connect: {
-                      id: 1,
-                    },
-                  },
-                  site,
-                },
-              });
-            }
-            const { inicioDoCiclo, finalDoCiclo } =
-              obterInicioEFimDoCiclo(weekReference);
-            const ciclo = await tx.ciclo.findFirst({
-              where: {
-                establishmentId: estabelecimentoNoBanco.id,
-                reference_date: {
-                  gte: inicioDoCiclo,
-                  lte: finalDoCiclo,
+      for await (const relatorio of file) {
+        let estabelecimentoNoBanco = todosEstabelecimentosNoBanco.find(
+          (dado) => dado.name === relatorio.Estabelecimento,
+        );
+        if (!estabelecimentoNoBanco?.id) {
+          estabelecimentoNoBanco = await tx.estabelecimento.create({
+            data: {
+              name: relatorio.Estabelecimento,
+              empresa: {
+                connect: {
+                  name: company,
                 },
               },
-            });
-
-            if (!ciclo?.id) {
-              await tx.ciclo.create({
-                data: {
-                  reference_date: new Date(weekReference),
-                  status: "PENDENTE",
-                  establishmentId: estabelecimentoNoBanco.id,
+              companies: {
+                connect: {
+                  id: 1,
                 },
-              });
-            }
-
-            await tx.vendas.create({
-              data: {
-                establishmentId: estabelecimentoNoBanco.id,
-                referenceDate: new Date(weekReference),
-                quantity: relatorio.Quantidade,
-                value: relatorio.Vendas,
-                importacaoId,
-                site,
               },
-            });
-
-            await tx.comissao.create({
-              data: {
-                establishmentId: estabelecimentoNoBanco.id,
-                referenceDate: new Date(weekReference),
-                value: relatorio.Comissão,
-                importacaoId,
-                site,
-              },
-            });
-
-            await tx.premios.create({
-              data: {
-                referenceDate: new Date(weekReference),
-                establishmentId: estabelecimentoNoBanco.id,
-                value: relatorio["Prêmios/Saques"],
-                site,
-                importacaoId,
-              },
-            });
-
-            await tx.liquido.create({
-              data: {
-                referenceDate: new Date(weekReference),
-                establishmentId: estabelecimentoNoBanco.id,
-                value: relatorio.Líquido,
-                importacaoId,
-                site,
-              },
-            });
-
-            const caixa = await tx.caixa.findFirst({
-              where: {
-                referenceDate: new Date(weekReference),
-                establishmentId: estabelecimentoNoBanco.id,
-              },
-            });
-            const { startOfDay } = obterDiaAnterior(weekReference);
-            const caixaDoDiaAnterior = await tx.caixa.findFirst({
-              where: {
-                referenceDate: startOfDay,
-                establishmentId: estabelecimentoNoBanco.id,
-              },
-            });
-            if (!caixa?.id) {
-              await tx.caixa.create({
-                data: {
-                  referenceDate: new Date(weekReference),
-                  establishmentId: estabelecimentoNoBanco.id,
-                  total: relatorio.Líquido + (caixaDoDiaAnterior?.total || 0),
-                  importacaoId,
-                  status: "PENDENTE",
-                  value_futebol: relatorio.Líquido,
-                  futebol: site,
-                },
-              });
-            } else {
-              await tx.caixa.update({
-                where: {
-                  id: caixa.id,
-                },
-                data: {
-                  total: {
-                    increment: relatorio.Líquido,
-                  },
-                  value_futebol: {
-                    increment: relatorio.Líquido,
-                  },
-                },
-              });
-            }
-          }
-
-          return { success: true, message: "Importado com sucesso" };
+              site,
+            },
+          });
+        }
+        const { inicioDoCiclo, finalDoCiclo } =
+          obterInicioEFimDoCiclo(weekReference);
+        const ciclo = await tx.ciclo.findFirst({
+          where: {
+            establishmentId: estabelecimentoNoBanco.id,
+            reference_date: {
+              gte: inicioDoCiclo,
+              lte: finalDoCiclo,
+            },
+          },
         });
-      return { success, message };
+
+        if (!ciclo?.id) {
+          await tx.ciclo.create({
+            data: {
+              reference_date: new Date(weekReference),
+              status: "PENDENTE",
+              establishmentId: estabelecimentoNoBanco.id,
+            },
+          });
+        }
+
+        await tx.vendas.create({
+          data: {
+            establishmentId: estabelecimentoNoBanco.id,
+            referenceDate: new Date(weekReference),
+            quantity: relatorio.Quantidade,
+            value: relatorio.Vendas,
+            importacaoId,
+            site,
+          },
+        });
+
+        await tx.comissao.create({
+          data: {
+            establishmentId: estabelecimentoNoBanco.id,
+            referenceDate: new Date(weekReference),
+            value: relatorio.Comissão,
+            importacaoId,
+            site,
+          },
+        });
+
+        await tx.premios.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimentoNoBanco.id,
+            value: relatorio["Prêmios/Saques"],
+            site,
+            importacaoId,
+          },
+        });
+
+        await tx.liquido.create({
+          data: {
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimentoNoBanco.id,
+            value: relatorio.Líquido,
+            importacaoId,
+            site,
+          },
+        });
+
+        const caixa = await tx.caixa.findFirst({
+          where: {
+            referenceDate: new Date(weekReference),
+            establishmentId: estabelecimentoNoBanco.id,
+          },
+        });
+        const { startOfDay } = obterDiaAnterior(weekReference);
+        const caixaDoDiaAnterior = await tx.caixa.findFirst({
+          where: {
+            referenceDate: startOfDay,
+            establishmentId: estabelecimentoNoBanco.id,
+          },
+        });
+        if (!caixa?.id) {
+          await tx.caixa.create({
+            data: {
+              referenceDate: new Date(weekReference),
+              establishmentId: estabelecimentoNoBanco.id,
+              total: relatorio.Líquido + (caixaDoDiaAnterior?.total || 0),
+              importacaoId,
+              status: "PENDENTE",
+              value_futebol: relatorio.Líquido,
+              futebol: site,
+            },
+          });
+        } else {
+          await tx.caixa.update({
+            where: {
+              id: caixa.id,
+            },
+            data: {
+              total: {
+                increment: relatorio.Líquido,
+              },
+              value_futebol: {
+                increment: relatorio.Líquido,
+              },
+            },
+          });
+        }
+      }
+
+      return { success: true, message: "Importado com sucesso" };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError ||
@@ -821,6 +808,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) =>
       await this.salvarRelatorioSportNetVipNoBanco(
         file as IFormattedReportSportNet[],
@@ -832,6 +820,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       ),
     [ReportCategory.BET]: async (
       file,
@@ -843,6 +832,7 @@ export class ImportacaoService implements IImportacaoService {
       localidadesNoBanco,
       secaoNoBanco,
       importacaoId,
+      tx,
     ) =>
       await this.salvarRelatorioSportBetNoBanco(
         file as IFormattedReportSportNet[],
@@ -854,6 +844,7 @@ export class ImportacaoService implements IImportacaoService {
         localidadesNoBanco,
         secaoNoBanco,
         importacaoId,
+        tx,
       ),
     [ReportCategory.ARENA]: async (
       file,
