@@ -211,6 +211,7 @@ model Caixa {
   loteria         String?
   value_loteria   Int?
   total           Int
+  createdBy       String          @default("IMPORTACAO")
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
