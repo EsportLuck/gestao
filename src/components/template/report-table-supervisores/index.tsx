@@ -6,7 +6,7 @@ import { useMemo } from "react";
 
 import { useFetch } from "@/hooks/useFetch";
 
-export default function ReportTableSupervisores() {
+export function ReportTableSupervisores() {
   const data = useFetch<Supervisor[]>("/api/v1/management/supervisores");
 
   const supervisores = useMemo<Supervisor[]>(

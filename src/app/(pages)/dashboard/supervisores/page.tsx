@@ -1,7 +1,7 @@
 import React from "react";
 
 import { TitlePage } from "@/components/TitlePage";
-import ReportTableSupervisores from "@/components/template/report-table-supervisores";
+import { ReportTableSupervisores } from "@/components/template";
 
 const ReportEstabelecimentos = async () => {
   return (
