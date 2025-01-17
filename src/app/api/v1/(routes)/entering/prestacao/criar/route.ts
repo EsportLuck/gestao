@@ -19,22 +19,34 @@ export async function POST(
     }
 
     const { message, status } = await prisma.$transaction(async (tx) => {
-      const userDB = await tx.user
-        .findUniqueOrThrow({
-          where: { username: prestacaoData.user },
-          select: { username: true },
-        })
-        .catch(() => {
-          throw new Error("Usuário não encontrado");
-        });
-
+      const userDB = await tx.user.findUnique({
+        where: { username: prestacaoData.user },
+        select: { username: true },
+      });
+      if (!userDB?.username) {
+        return {
+          status: 400,
+          message: "Usuário não encontrado",
+        };
+      }
       let uploadResult = null;
       if (prestacaoData.file && typeof prestacaoData.file !== "string") {
         uploadResult = await put(prestacaoData.file.name, prestacaoData.file, {
           access: "public",
         });
       }
-
+      const estabelecimento = await tx.estabelecimento.findUnique({
+        where: { id: prestacaoData.estabelecimentoId },
+        select: {
+          empresaId: true,
+        },
+      });
+      if (!estabelecimento?.empresaId) {
+        return {
+          status: 400,
+          message: "Estabelecimento não encontrado",
+        };
+      }
       const lancamentoData: Prisma.LancamentosCreateInput = {
         downloadUrl: uploadResult?.downloadUrl ?? "",
         url: uploadResult?.url ?? "",
@@ -42,12 +54,17 @@ export async function POST(
         status: "analise",
         type: "prestação",
         value: convertToMinorUnit(prestacaoData.valor),
-        recorded_by: userDB.username,
+        recorded_by: userDB?.username,
         referenceDate: new Date(prestacaoData.date),
         id_ciclo: prestacaoData.ciclo,
         establishment: {
           connect: {
             id: prestacaoData.estabelecimentoId,
+          },
+        },
+        empresa: {
+          connect: {
+            id: estabelecimento.empresaId,
           },
         },
       };
