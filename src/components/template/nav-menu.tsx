@@ -65,6 +65,11 @@ export const NavMenu = () => {
           href: "/dashboard/importar",
           description: "Realiza a importação dos relatórios dos produtos",
         },
+        {
+          title: "Criar Caixas",
+          href: "/dashboard/criar-caixas",
+          description: "Cria caixas para controlar os estabelecimentos",
+        },
         // {
         //   title: "Cobrança",
         //   href: "/dashboard/cobranca",
