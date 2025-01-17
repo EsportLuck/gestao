@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const empresa = searchParams.get("empresa");
     const user = searchParams.get("user");
     if (!data || !empresa || !user) {
-      return { success: false, message: "Dados inválidos" };
+      return NextResponse.json({ success: false, message: "Dados inválidos" });
     }
     const { success, message } = await prisma.$transaction(
       async (tx) => {
