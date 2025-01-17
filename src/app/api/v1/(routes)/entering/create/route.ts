@@ -48,12 +48,13 @@ export async function POST(
       });
 
       if (!user?.username) return { message: "Usuário não permitido" };
-      const empresa = await tx.empresa.findUnique({
+      const buscarEstabelecimento = await tx.estabelecimento.findUnique({
         where: {
-          name: user.site,
+          id: estabelecimentoId.id,
         },
       });
-      if (!empresa?.name) return { message: "Empresa não encontrada" };
+      if (!buscarEstabelecimento?.empresaId)
+        return { message: "Empresa não encontrada" };
       const dataLancamento = {
         data_reference,
         forma_pagamento,
@@ -63,7 +64,7 @@ export async function POST(
         estabelecimentoId: estabelecimentoId.id,
         recorded_by,
         comprovante,
-        empresaId: empresa.id,
+        empresaId: buscarEstabelecimento.empresaId,
       };
       const lancamento = new Entering(dataLancamento);
       const { message } = await lancamento.create();
