@@ -94,6 +94,8 @@ model Ciclo {
   reference_date  DateTime        @db.Date
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  empresa         Empresa?        @relation(fields: [empresaId], references: [id])
+  empresaId       Int?
   establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
 }
@@ -320,6 +322,8 @@ model Empresa {
   Estabelecimento Estabelecimento[]
   Supervisor      Supervisor[]
   Lancamentos     Lancamentos[]
+
+  Ciclo Ciclo[]
 }
 
 model Importacao {
