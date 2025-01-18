@@ -1,7 +1,4 @@
 -- AlterTable
-ALTER TABLE "Caixa" ALTER COLUMN "createdBy" SET DEFAULT 'IMPORTACAO';
-
--- AlterTable
 ALTER TABLE "Ciclo" ADD COLUMN     "empresaId" INTEGER;
 
 -- AddForeignKey

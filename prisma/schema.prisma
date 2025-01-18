@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -34,40 +31,40 @@ model Estabelecimento {
   name               String            @unique
   status_atividade   String            @default("ATIVO")
   status_compromisso Int               @default(5)
-  ciclo_pagamento    Ciclo[]
-  localidade         Localidade?       @relation(fields: [localidadeId], references: [id])
   localidadeId       Int?
-  secao              Secao?            @relation(fields: [secaoId], references: [id])
   secaoId            Int?
-  rota               Rota?             @relation(fields: [rotaId], references: [id])
   rotaId             Int?
-  supervisor         Supervisor?       @relation(fields: [supervisorId], references: [id])
   supervisorId       Int?
   site               String
-  empresa            Empresa?          @relation(fields: [empresaId], references: [id])
-  empresaId          Int?
-  vendas             Vendas[]
-  premios            Premios[]
-  liquido            Liquido[]
-  caixa              Caixa[]
-  despesas           Despesas[]
-  despesas_fixas     DespesasFixas[]
-  comissao           Comissao[]
-  sangria            Sangria[]
-  prestacao          Prestacao[]
-  negativo           Negativo[]
-  deposito           Deposito[]
   comissao_retida    Boolean?          @default(false)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  login              Login[]
-  matriz             Estabelecimento?  @relation("matrizId", fields: [matrizId], references: [id])
   matrizId           Int?
-  filiais            Estabelecimento[] @relation("matrizId")
-  lancamento         Lancamentos[]
-  observacao         Observacao[]
-  companies          Companies?        @relation(fields: [companiesId], references: [id])
   companiesId        Int?
+  empresaId          Int?
+  caixa              Caixa[]
+  ciclo_pagamento    Ciclo[]
+  comissao           Comissao[]
+  deposito           Deposito[]
+  despesas           Despesas[]
+  despesas_fixas     DespesasFixas[]
+  companies          Companies?        @relation(fields: [companiesId], references: [id])
+  empresa            Empresa?          @relation(fields: [empresaId], references: [id])
+  localidade         Localidade?       @relation(fields: [localidadeId], references: [id])
+  matriz             Estabelecimento?  @relation("matrizId", fields: [matrizId], references: [id])
+  filiais            Estabelecimento[] @relation("matrizId")
+  rota               Rota?             @relation(fields: [rotaId], references: [id])
+  secao              Secao?            @relation(fields: [secaoId], references: [id])
+  supervisor         Supervisor?       @relation(fields: [supervisorId], references: [id])
+  lancamento         Lancamentos[]
+  liquido            Liquido[]
+  login              Login[]
+  negativo           Negativo[]
+  observacao         Observacao[]
+  premios            Premios[]
+  prestacao          Prestacao[]
+  sangria            Sangria[]
+  vendas             Vendas[]
 }
 
 model Negativo {
@@ -75,8 +72,8 @@ model Negativo {
   value           Int
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Prestacao {
@@ -84,20 +81,20 @@ model Prestacao {
   value           Int
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Ciclo {
   id              Int             @id @default(autoincrement())
   status          String          @default("PENDENTE")
-  reference_date  DateTime        @db.Date
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  establishmentId Int
+  reference_date  DateTime        @db.Date
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   empresa         Empresa?        @relation(fields: [empresaId], references: [id])
   empresaId       Int?
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
-  establishmentId Int
 }
 
 model Companies {
@@ -114,54 +111,54 @@ model Login {
   imagemUrl       String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Observacao {
   id              Int              @id @default(autoincrement())
   comentario      String
-  createdBy       String           @default("")
   createdAt       DateTime         @default(now()) @db.Date
   updatedAt       DateTime         @updatedAt
-  establishment   Estabelecimento? @relation(fields: [establishmentId], references: [id])
   establishmentId Int?
-  lancamento      Lancamentos?     @relation(fields: [lancamentoId], references: [id])
   lancamentoId    Int?
+  createdBy       String           @default("")
+  establishment   Estabelecimento? @relation(fields: [establishmentId], references: [id])
+  lancamento      Lancamentos?     @relation(fields: [lancamentoId], references: [id])
 }
 
 model Lancamentos {
   id              Int             @id @default(autoincrement())
-  id_ciclo        Int?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   referenceDate   DateTime        @db.Date
   value           Int
-  empresa         Empresa         @relation(fields: [empresaId], references: [id])
-  empresaId       Int
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
   type            String
   paymentMethod   String
   status          String
-  observation     Observacao[]
-  recorded_by     String
   approved_by     String?
-  url             String
+  recorded_by     String
   downloadUrl     String
+  url             String
+  id_ciclo        Int?
+  empresaId       Int
+  empresa         Empresa         @relation(fields: [empresaId], references: [id])
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  observation     Observacao[]
 }
 
 model Vendas {
   id              Int             @id @default(autoincrement())
   value           Int
   site            String
-  quantity        Int
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
-  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  quantity        Int
   importacaoId    Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
 }
 
 model Comissao {
@@ -170,10 +167,10 @@ model Comissao {
   site            String
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
-  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
   importacaoId    Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
 }
 
 model Premios {
@@ -182,11 +179,11 @@ model Premios {
   site            String
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
-  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  updatedAt       DateTime        @updatedAt
   importacaoId    Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
 }
 
 model Liquido {
@@ -195,31 +192,31 @@ model Liquido {
   site            String
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
-  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
+  updatedAt       DateTime        @updatedAt
   importacaoId    Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  importacao      Importacao      @relation(fields: [importacaoId], references: [id])
 }
 
 model Caixa {
   id              Int             @id @default(autoincrement())
-  status          String
   referenceDate   DateTime        @db.Date
-  futebol         String?
-  value_futebol   Int?
-  bicho           String?
-  value_bicho     Int?
-  loteria         String?
-  value_loteria   Int?
-  total           Int
-  createdBy       String          @default("IMPORTACAO")
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
-  importacao      Importacao?     @relation(fields: [importacaoId], references: [id])
+  bicho           String?
+  futebol         String?
+  loteria         String?
+  status          String
+  total           Int
+  updatedAt       DateTime        @updatedAt
+  value_bicho     Int?
+  value_futebol   Int?
+  value_loteria   Int?
   importacaoId    Int?
+  createdBy       String          @default("IMPORTAÇÃO")
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
+  importacao      Importacao?     @relation(fields: [importacaoId], references: [id])
 }
 
 model Despesas {
@@ -227,8 +224,8 @@ model Despesas {
   value           Int
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model DespesasFixas {
@@ -236,8 +233,8 @@ model DespesasFixas {
   value           Int
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Sangria {
@@ -245,8 +242,8 @@ model Sangria {
   value           Int             @default(0)
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Deposito {
@@ -254,61 +251,60 @@ model Deposito {
   value           Int             @default(0)
   referenceDate   DateTime        @db.Date
   createdAt       DateTime        @default(now())
-  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
   establishmentId Int
+  establishment   Estabelecimento @relation(fields: [establishmentId], references: [id])
 }
 
 model Supervisor {
   id            Int               @id @default(autoincrement())
   name          String            @unique
   createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  empresaId     Int?
+  establishment Estabelecimento[]
   Localidade    Localidade[]
   Secao         Secao[]
   empresa       Empresa?          @relation(fields: [empresaId], references: [id])
-  empresaId     Int?
-  updatedAt     DateTime          @updatedAt
-  establishment Estabelecimento[]
 }
 
 model Localidade {
   id               Int               @id @default(autoincrement())
   name             String            @unique
-  empresa          Empresa?          @relation(fields: [empresaId], references: [id])
-  empresaId        Int?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  estabelecimentos Estabelecimento[]
-  secao            Secao[]
-  Supervisor       Supervisor?       @relation(fields: [Supervisorid], references: [id])
   Supervisorid     Int?
+  empresaId        Int?
+  estabelecimentos Estabelecimento[]
+  Supervisor       Supervisor?       @relation(fields: [Supervisorid], references: [id])
+  empresa          Empresa?          @relation(fields: [empresaId], references: [id])
+  secao            Secao[]
 }
 
 model Secao {
   id            Int               @id @default(autoincrement())
   name          String            @unique
-  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
-  empresaId     Int?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-  establishment Estabelecimento[]
-  Localidade    Localidade?       @relation(fields: [localidadeId], references: [id])
   localidadeId  Int?
+  Supervisorid  Int?
+  empresaId     Int?
+  establishment Estabelecimento[]
   rota          Rota[]
-
-  Supervisor   Supervisor? @relation(fields: [Supervisorid], references: [id])
-  Supervisorid Int?
+  Supervisor    Supervisor?       @relation(fields: [Supervisorid], references: [id])
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
+  Localidade    Localidade?       @relation(fields: [localidadeId], references: [id])
 }
 
 model Rota {
   id            Int               @id @default(autoincrement())
   name          String            @unique
-  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
-  empresaId     Int?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-  establishment Estabelecimento[]
-  Secao         Secao?            @relation(fields: [secaoId], references: [id])
   secaoId       Int?
+  empresaId     Int?
+  establishment Estabelecimento[]
+  empresa       Empresa?          @relation(fields: [empresaId], references: [id])
+  Secao         Secao?            @relation(fields: [secaoId], references: [id])
 }
 
 model Empresa {
@@ -316,12 +312,12 @@ model Empresa {
   name            String            @unique
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  Localidade      Localidade[]
-  Secao           Secao[]
-  Rota            Rota[]
   Estabelecimento Estabelecimento[]
-  Supervisor      Supervisor[]
   Lancamentos     Lancamentos[]
+  Localidade      Localidade[]
+  Rota            Rota[]
+  Secao           Secao[]
+  Supervisor      Supervisor[]
 
   Ciclo Ciclo[]
 }
@@ -332,12 +328,12 @@ model Importacao {
   state         String
   referenceDate DateTime   @db.Date
   relatorio     String
-  modifiedBy    String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  modifiedBy    String?
   Caixa         Caixa[]
-  Vendas        Vendas[]
-  Premios       Premios[]
-  Liquido       Liquido[]
   Comissao      Comissao[]
+  Liquido       Liquido[]
+  Premios       Premios[]
+  Vendas        Vendas[]
 }
