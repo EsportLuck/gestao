@@ -2,6 +2,7 @@ import { prisma } from "@/services/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { obterDiaAnterior } from "@/app/api/v1/utils/obterDiaAnterior";
 import { Prisma } from "@prisma/client";
+import { obterInicioEFimDoCiclo } from "../../utils/obterInicioEFimDoCiclo";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
@@ -25,6 +26,18 @@ export async function GET(req: NextRequest) {
     }
     const { success, message } = await prisma.$transaction(
       async (tx) => {
+        const { inicioDoCiclo, finalDoCiclo } = obterInicioEFimDoCiclo(
+          new Date(data),
+        );
+        const ciclo = await tx.ciclo.findFirst({
+          where: {
+            reference_date: { gte: inicioDoCiclo, lt: finalDoCiclo },
+            empresa: { name: empresa },
+          },
+        });
+        if (typeof ciclo?.id === "number") {
+          return { success: false, message: "Ciclo já criado" };
+        }
         const { startOfDay } = obterDiaAnterior(data);
         const todosEstabelecimentos = await tx.estabelecimento.findMany({
           where: {
