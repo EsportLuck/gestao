@@ -464,9 +464,8 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dataForForm.localidade &&
-                        dataForForm.localidade.length > 0 ? (
-                          dataForForm.localidade.map((item, index) => (
+                        {localidades && localidades.length > 0 ? (
+                          localidades.map((item, index) => (
                             <SelectItem
                               key={index}
                               value={item.name ? item.name : ""}
