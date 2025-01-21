@@ -19,6 +19,7 @@ import {
   GitPullRequestCreateArrow,
   Cable,
   UserRound,
+  Blinds,
 } from "lucide-react";
 import { DropDownMenuItens, TMessage } from "./drop-down-menu-itens";
 import { useState } from "react";
@@ -85,6 +86,13 @@ export const Action: React.FC<IAction> = ({
       title: "Definir Supervisor",
       items: supervisor,
       message: "supervisor",
+      modal: false,
+    },
+    {
+      icon: <Blinds className="mr-2 h-4 w-4" />,
+      title: "Definir Comissão Retida",
+      items: [{ id: "1", name: "tornar comissão retida" }],
+      message: "opção",
       modal: false,
     },
   ];
