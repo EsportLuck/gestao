@@ -46,7 +46,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
   };
 
   const updateAttribute = async (
-    value: "localidade" | "seção" | "rota" | "filiais" | "supervisor",
+    value: "localidade" | "seção" | "rota" | "filiais" | "supervisor" | "opção",
   ) => {
     setIsSubmitting(true);
     const strategy = {
@@ -80,21 +80,35 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
           connect: { id: atributo.id },
         },
       },
+      opção: {
+        action: "tornar comissão retida",
+        change: true,
+      },
     };
 
     const strategyFilial = (
-      value: "localidade" | "seção" | "rota" | "filiais" | "supervisor",
+      value:
+        | "localidade"
+        | "seção"
+        | "rota"
+        | "filiais"
+        | "supervisor"
+        | "opção",
     ) => {
-      if (value === "filiais") return "/to-filial";
-      return "";
+      switch (value) {
+        case "opção":
+          return "/comissao";
+        case "filiais":
+          return "/to-filial";
+        default:
+          return "";
+      }
     };
 
     const fecth = new FetchHttpClient();
     try {
-      await fecth.post(
-        `/api/v1/management/establishments/update${strategyFilial(value)}`,
-        strategy[value],
-      );
+      const url = `/api/v1/management/establishments/update${strategyFilial(value)}`;
+      await fecth.post(url, strategy[value]);
     } catch (error) {
       console.error("filtarable-select updatedAttribute", error);
     } finally {
