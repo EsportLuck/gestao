@@ -24,7 +24,7 @@ import { useFetch } from "@/hooks/useFetch";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Empresa } from "@prisma/client";
-import axios from "axios";
+import axios, { Axios, AxiosError } from "axios";
 import { CalendarIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { format } from "@/utils";
@@ -107,11 +107,13 @@ export default function CriarCaixas() {
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof AxiosError) {
         toast({
           description: (
             <pre className="rounded-md p-4">
-              <code className="text-slate-200 text-wrap">{error.message}</code>
+              <code className="text-slate-200 text-wrap">
+                {error.response?.data.message}
+              </code>
             </pre>
           ),
           variant: "destructive",
@@ -120,15 +122,12 @@ export default function CriarCaixas() {
         toast({
           description: (
             <pre className="rounded-md p-4">
-              <code className="text-slate-200 text-wrap">
-                Verifique se você preencheu as informações de maneira correta
-              </code>
+              <code className="text-slate-200 text-wrap">Erro interno</code>
             </pre>
           ),
           variant: "destructive",
         });
       }
-    } finally {
     }
   }
 

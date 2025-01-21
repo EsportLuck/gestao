@@ -4,6 +4,7 @@ import { obterDiaAnterior } from "@/app/api/v1/utils/obterDiaAnterior";
 import { Prisma } from "@prisma/client";
 import { obterInicioEFimDoCiclo } from "../../utils/obterInicioEFimDoCiclo";
 export const revalidate = 0;
+export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
         for await (const item of todosEstabelecimentos) {
           const caixa = item.caixa?.[0];
 
-          if (typeof caixa.id !== "number") {
+          if (typeof caixa?.id !== "number") {
             await tx.caixa.create({
               data: {
                 referenceDate: startOfDay,
@@ -84,7 +85,7 @@ export async function GET(req: NextRequest) {
         }
         return { success: true, message: "Caixas criadas com sucesso" };
       },
-      { timeout: 20000 },
+      { timeout: 200000 },
     );
 
     if (!success) {
@@ -93,6 +94,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success, message }, { status: 200 });
   } catch (error) {
+    console.error(error);
     if (
       error instanceof Error ||
       error instanceof SyntaxError ||
