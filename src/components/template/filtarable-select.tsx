@@ -11,9 +11,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
-import { useRouter } from "next/navigation";
 
 interface SelectOption {
   id: string;
@@ -37,6 +36,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [atributo, setAtributo] = useState({ id: 0, name: "" });
   const router = useRouter();
+
   const filteredOptions = options.filter((option) =>
     option.name?.toLowerCase().includes(filter.toLowerCase()),
   );
@@ -83,6 +83,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
       opção: {
         action: "tornar comissão retida",
         change: true,
+        establishmentId: id,
       },
     };
 
