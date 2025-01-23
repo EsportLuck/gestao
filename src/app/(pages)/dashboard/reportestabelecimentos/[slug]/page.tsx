@@ -98,7 +98,26 @@ export default function Page({ params }: { params: { slug: string } }) {
           ? "Não definido"
           : estabelecimentoDetalhados.supervisor,
     },
+    {
+      title: "Filias",
+      value:
+        estabelecimentoDetalhados?.filiais?.length === 0
+          ? "Não definido"
+          : estabelecimentoDetalhados!.filiais
+              .map((filia) => filia.name)
+              .join(", "),
+    },
+    {
+      title: "Comissão Retida",
+      value:
+        estabelecimentoDetalhados?.comissao_retida === undefined
+          ? "Não definido"
+          : estabelecimentoDetalhados.comissao_retida
+            ? "Sim"
+            : "Não",
+    },
   ];
+  console.log({ filiais: estabelecimentoDetalhados?.filiais.length });
   const statusStrategyIcon = (status: string | undefined) => {
     switch (status) {
       case "ativo":
