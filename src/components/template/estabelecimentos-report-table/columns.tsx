@@ -9,7 +9,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import {
+  MoreHorizontal,
+  ArrowUpDown,
+  LockKeyhole,
+  UnlockKeyhole,
+} from "lucide-react";
 import { numberFormater } from "@/utils";
 import { ModalLancamentoToTable } from "@/components/template";
 import { obterInicioEFimDoCiclo } from "@/app/api/v1/utils/obterInicioEFimDoCiclo";
@@ -18,6 +23,7 @@ import { formatarData } from "@/utils/formatarData";
 type EstabelecimentosExtrato = {
   id: string;
   status: { status: string; reference_date: string }[];
+  comissao_retida: boolean;
   estabelecimento: string;
   quantidade: number;
   vendas: number;
@@ -101,26 +107,39 @@ const columns: ColumnDef<EstabelecimentosExtrato>[] = [
     header: ({ column }) => sortingColumn(column, "status"),
     cell: ({ row }) => {
       const statusOptions = row.original.status;
-
+      const comissao_retida = row.original.comissao_retida;
       return statusOptions.map((statusOption) => {
         const date = formatarData(statusOption.reference_date);
         const obterCiclo = obterInicioEFimDoCiclo(date);
 
         return (
-          <div
-            key={statusOption.reference_date.toString()}
-            title={
-              obterCiclo.inicioDoCiclo.toLocaleDateString() +
-              " - " +
-              obterCiclo.finalDoCiclo.toLocaleDateString()
-            }
-            className={` rounded-full text-center font-bold  ${
-              statusOption.status.toLowerCase() === "pago"
-                ? "bg-green-400 text-green-600 hidden"
-                : "bg-yellow-400 text-yellow-600"
-            }`}
-          >
-            {statusOption.status.toLowerCase()}
+          <div className="flex justify-center items-center gap-2" key={1}>
+            <div
+              key={statusOption.reference_date.toString()}
+              title={
+                obterCiclo.inicioDoCiclo.toLocaleDateString() +
+                " - " +
+                obterCiclo.finalDoCiclo.toLocaleDateString()
+              }
+              className={` rounded-full text-center font-bold `}
+            >
+              {
+                <span
+                  title={`Status de pagamento ${statusOption.status.toLocaleLowerCase()}`}
+                >
+                  {statusOption.status.toLowerCase() === "pago" ? "🟢" : "🟡"}
+                </span>
+              }
+            </div>
+            <i
+              title={`Status comissão ${comissao_retida ? "retida" : "não retida"}`}
+            >
+              {comissao_retida ? (
+                <LockKeyhole size={24} />
+              ) : (
+                <UnlockKeyhole size={24} />
+              )}
+            </i>
           </div>
         );
       });
@@ -226,6 +245,7 @@ const columns: ColumnDef<EstabelecimentosExtrato>[] = [
       const estabelecimento = {
         id: row.original.id,
         name: row.original.estabelecimento,
+        comissao_retida: row.original.comissao_retida,
       };
 
       const disabled = true;

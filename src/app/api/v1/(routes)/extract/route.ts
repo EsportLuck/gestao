@@ -45,9 +45,11 @@ export async function GET(req: NextRequest) {
       const secao = dados.secao;
       const prestacao = dados.prestacao;
       const negativo = dados.negativo;
+      const comissao_retida = dados.comissao_retida;
       return {
         id,
         status,
+        comissao_retida,
         estabelecimento,
         vendas,
         comissão,

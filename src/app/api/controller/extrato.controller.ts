@@ -12,6 +12,7 @@ interface IConsultaDB {
   status_atividade: string;
   status_pagamento: StatusPagamento[] | null;
   status_compromisso: number | null;
+  comissao_retida: boolean | null;
   localidadeId: number | null;
   matrizId: number | null;
   secaoId: number | null;
@@ -104,7 +105,7 @@ export class ExtratoController {
           status_atividade: true,
           status_compromisso: true,
           localidadeId: true,
-
+          comissao_retida: true,
           localidade: {
             select: {
               name: true,
@@ -325,6 +326,7 @@ export class ExtratoController {
           name: dados.name,
           status_atividade: dados.status_atividade,
           status_pagamento,
+          comissao_retida: dados.comissao_retida,
           status_compromisso: dados.status_compromisso,
           localidadeId: dados.localidadeId,
           matrizId: dados.matrizId,
