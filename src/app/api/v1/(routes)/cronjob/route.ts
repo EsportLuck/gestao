@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
         const cronjob = await tx.cronjob.findFirst({
           where: {
             name: empresa,
-            date: data,
+            date: new Date(data),
           },
         });
         if (typeof cronjob?.id === "number") {
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
         await tx.cronjob.create({
           data: {
             name: empresa,
-            date: data,
+            date: new Date(data),
           },
         });
 
