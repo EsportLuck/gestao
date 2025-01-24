@@ -56,6 +56,25 @@ export async function GET(req: NextRequest) {
             },
           },
         });
+        const cronjob = await tx.cronjob.findFirst({
+          where: {
+            name: empresa,
+            date: data,
+          },
+        });
+        if (typeof cronjob?.id === "number") {
+          return {
+            success: false,
+            message: `Caixa da empresa ${empresa} na data ${data} já criada`,
+          };
+        }
+        await tx.cronjob.create({
+          data: {
+            name: empresa,
+            date: data,
+          },
+        });
+
         for await (const item of todosEstabelecimentos) {
           const caixa = item.caixa?.[0];
 
