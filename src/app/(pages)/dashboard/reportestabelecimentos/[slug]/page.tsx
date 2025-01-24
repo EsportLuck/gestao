@@ -103,7 +103,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       value:
         estabelecimentoDetalhados?.filiais?.length === 0
           ? "Não definido"
-          : estabelecimentoDetalhados!.filiais
+          : estabelecimentoDetalhados?.filiais
               .map((filia) => filia.name)
               .join(", "),
     },
