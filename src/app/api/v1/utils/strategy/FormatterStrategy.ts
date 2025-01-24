@@ -31,7 +31,7 @@ export interface FormatterFunctions {
   fratec: typeof formatterReportFratec;
   "arena.site": typeof formatterReportArenaSite;
   "1738 - banca luck": typeof formatterReportAtena;
-  "2300 - arena sport luck": typeof formatterReportAtena;
+  "2300 - playsports sport luck": typeof formatterReportAtena;
   "4700 - rv luck": typeof formatterReportAtena;
   "5635 - sport luck": typeof formatterReportAtena;
   "6147 - neri pernambuco": typeof formatterReportAtena;
@@ -77,7 +77,7 @@ export const formatterMap: FormatterFunctions = {
   fratec: formatterReportFratec,
   "arena.site": formatterReportArenaSite,
   "1738 - banca luck": formatterReportAtena,
-  "2300 - arena sport luck": formatterReportAtena,
+  "2300 - playsports sport luck": formatterReportAtena,
   "4700 - rv luck": formatterReportAtena,
   "5635 - sport luck": formatterReportAtena,
   "6147 - neri pernambuco": formatterReportAtena,
@@ -143,7 +143,7 @@ export const reportSites = {
   ],
   [ReportCategory.ARENA]: [
     "1738 - banca luck",
-    "2300 - arena sport luck",
+    "2300 - playsports sport luck",
     "4700 - rv luck",
     "5635 - sport luck",
     "6147 - neri pernambuco",

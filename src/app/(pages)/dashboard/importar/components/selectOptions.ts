@@ -9,7 +9,7 @@ export const reportOptions = (options: string | undefined) => {
           site: "1738 - BANCA LUCK",
         },
         {
-          site: "2300 - ARENA SPORT LUCK",
+          site: "2300 - PlaySports Sport Luck",
         },
         {
           site: "4700 - RV LUCK",

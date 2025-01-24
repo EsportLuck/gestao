@@ -115,7 +115,7 @@ export interface IFormatterType {
   fratec: (worksheet: WorkSheet) => TReportFratec[];
   "arena.site": (worksheet: WorkSheet) => TFormattedReportArenaSite[];
   "1738 - banca luck": (worksheet: WorkSheet) => TReportAtena[];
-  "2300 - arena sport luck": (worksheet: WorkSheet) => TReportAtena[];
+  "2300 - playsports sport luck": (worksheet: WorkSheet) => TReportAtena[];
   "4700 - rv luck": (worksheet: WorkSheet) => TReportAtena[];
   "5635 - sport luck": (worksheet: WorkSheet) => TReportAtena[];
   "6147 - neri pernambuco": (worksheet: WorkSheet) => TReportAtena[];
