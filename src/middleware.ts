@@ -29,14 +29,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/dashboard",
-    "/dashboard/:path*",
-    "/api/v1/:path*",
-    {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-    },
-  ],
+  matcher: ["/", "/dashboard", "/dashboard/:path*"],
 };
