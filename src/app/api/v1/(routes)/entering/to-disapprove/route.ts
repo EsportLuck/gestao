@@ -4,6 +4,7 @@ import { Entering } from "@/app/api/models/entering.model";
 import { getToken } from "next-auth/jwt";
 import { debitOrCredit } from "@/app/api/v1/utils/debitOrCredit";
 import { Establishment } from "@/app/api/controller/establishment.controller";
+import { Prisma } from "@prisma/client";
 
 async function routerDepositOrWithdrawal(
   id: number,
@@ -100,6 +101,18 @@ export async function PUT(
     return NextResponse.json({ status: 200 });
   } catch (error) {
     console.error("entering to-disapprove put", error);
-    return NextResponse.json({ status: 500, error: "Erro ao atualizar" });
+    if (
+      error instanceof Error ||
+      error instanceof TypeError ||
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError ||
+      error instanceof Prisma.PrismaClientRustPanicError ||
+      error instanceof Prisma.PrismaClientInitializationError ||
+      error instanceof Prisma.PrismaClientValidationError
+    ) {
+      return NextResponse.json({ status: 500, error: error.message });
+    } else {
+      return NextResponse.json({ status: 500, error: "Erro desconhecido" });
+    }
   }
 }

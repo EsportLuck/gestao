@@ -73,7 +73,7 @@ export async function POST(
       if (lancamento) {
         return { status: 201, message: "Lancamento criado com sucesso" };
       }
-      return { status: 500, message: "Erro ao criar lancamento" };
+      return { status: 500, message: "Erro ao criar lancamento de prestação" };
     });
 
     return NextResponse.json({ status, message });

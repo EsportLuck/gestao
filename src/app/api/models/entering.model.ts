@@ -86,13 +86,20 @@ export class Entering {
 
       return { message: "Lançamento criado com sucesso" };
     } catch (error) {
-      if (error instanceof Error) {
+      if (
+        error instanceof Error ||
+        error instanceof TypeError ||
+        error instanceof SyntaxError ||
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError ||
+        error instanceof Prisma.PrismaClientRustPanicError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
         return { message: error.message };
+      } else {
+        return { message: "Erro Interno do servid" };
       }
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        return { message: error.message };
-      }
-      return { message: "Erro Interno do servidor" };
     }
   }
   async read(): Promise<Lancamentos | null> {
@@ -337,8 +344,18 @@ export class Entering {
         data: newData,
       });
     } catch (error) {
-      console.error("Erro ao atualizar lançamento:", error);
-      throw new Error("Erro ao atualizar lançamento");
+      if (
+        error instanceof Error ||
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError ||
+        error instanceof Prisma.PrismaClientRustPanicError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
+        throw new Error(`Update ${error.message}`);
+      } else {
+        throw new Error("Update Erro Interno do servidor");
+      }
     } finally {
       await prisma.$disconnect();
     }
@@ -360,8 +377,18 @@ export class Entering {
         },
       });
     } catch (error) {
-      console.error("Erro ao atualizar lançamento:", error);
-      throw new Error("Erro ao atualizar lançamento");
+      if (
+        error instanceof Error ||
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError ||
+        error instanceof Prisma.PrismaClientRustPanicError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
+        throw new Error(`ToFloat ${error.message}`);
+      } else {
+        throw new Error("ToFloat Erro Interno do servidor");
+      }
     } finally {
       await prisma.$disconnect();
     }
