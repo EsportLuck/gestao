@@ -117,7 +117,6 @@ export default function Page({ params }: { params: { slug: string } }) {
             : "Não",
     },
   ];
-  console.log({ filiais: estabelecimentoDetalhados?.filiais.length });
   const statusStrategyIcon = (status: string | undefined) => {
     switch (status) {
       case "ativo":

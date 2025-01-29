@@ -69,7 +69,7 @@ const FormSchema = z.object({
 type TFormSchema = z.infer<typeof FormSchema>;
 export const ModalLancamento: FC = () => {
   const obterEstabelecimentos = useFetch<Partial<Estabelecimento>[]>(
-    "/api/v1/management/establishments",
+    "/api/v1/management/companies",
   ).data;
 
   const estabelecimentos = useMemo(() => {
