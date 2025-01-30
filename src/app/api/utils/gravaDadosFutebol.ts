@@ -73,7 +73,7 @@ export const gravaDadosFutebol = async (
     );
 
     if (!localidadesSuccess || !secaoSuccess || !estabelecimentosSuccess)
-      return { success: false, message: "Algo deu errado na criação de dados" };
+      return { success: false, message: "Falha na criação de dados básicos" };
 
     const todosOsEstabelecimentosNoBanco = await tx.estabelecimento.findMany({
       where: {

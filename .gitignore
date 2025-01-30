@@ -42,3 +42,7 @@ next-env.d.ts
 #reset db
 deleteDataBase.js
 deleteBanco.js
+
+#ideias
+
+melhorias.md
