@@ -22,3 +22,4 @@ export * from "./report-table-supervisores";
 export * from "./loading-spinner-modal";
 export * from "./menu-observacoes";
 export * from "./exportar-excel";
+export * from "./report-table-caixas";
