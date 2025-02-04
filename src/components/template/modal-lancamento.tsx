@@ -41,9 +41,9 @@ import axios from "axios";
 import { format } from "@/utils";
 import { useSession } from "next-auth/react";
 import { ComboboxEstablishment } from "@/components/template";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import { useFetch } from "@/hooks/useFetch";
-import { Estabelecimento } from "@prisma/client";
+import { Estabelecimento, Prisma } from "@prisma/client";
 
 const FormSchema = z.object({
   data_lancamento: z.date({
@@ -82,7 +82,7 @@ export const ModalLancamento: FC = () => {
   const closedRef = useRef<HTMLButtonElement | null>(null);
 
   const { data: session } = useSession();
-
+  const router = useRouter();
   const form = useForm<TFormSchema>({
     resolver: zodResolver(FormSchema),
     mode: "onChange",
@@ -92,12 +92,16 @@ export const ModalLancamento: FC = () => {
   async function formSubmit(data: TFormSchema) {
     let closed = closedRef.current;
     closed?.click();
-
+    const user = session?.user.username as string;
+    if (typeof user !== "string") {
+      router.push("/");
+      throw new Error("Usuário não autenticado");
+    }
     const formData = new FormData();
     formData.append("tipo", data.tipo);
     formData.append("forma_pagamento", data.forma_pagamento);
     formData.append("estabelecimentoId", data.estabelecimento);
-    formData.append("comprovante", data.comprovante[0]);
+    formData.append("comprovante", "data.comprovante[0]");
     formData.append("valor", data.valor);
     formData.append("observacao_comprovante", data.observacao);
     formData.append("user", session?.user.username as string);
@@ -118,7 +122,9 @@ export const ModalLancamento: FC = () => {
             </code>
           ),
         });
-        return router.push("/");
+        router.push("/");
+
+        return null;
       }
 
       if (response.data.status !== 201) {
@@ -139,16 +145,32 @@ export const ModalLancamento: FC = () => {
         variant: "success",
       });
     } catch (error) {
-      toast({
-        description: (
-          <pre className="rounded-md bg-red-600 p-4">
-            <code className="text-white text-wrap">
-              Error interno do servidor
-            </code>
-          </pre>
-        ),
-        variant: "destructive",
-      });
+      if (
+        error instanceof Error ||
+        error instanceof TypeError ||
+        error instanceof SyntaxError ||
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError ||
+        error instanceof Prisma.PrismaClientRustPanicError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
+        toast({
+          description: (
+            <pre className="rounded-md bg-red-600 p-4">{error.message}</pre>
+          ),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          description: (
+            <pre className="rounded-md bg-red-600 p-4">
+              <code className="text-white text-wrap">Erro desconhecido</code>
+            </pre>
+          ),
+          variant: "destructive",
+        });
+      }
     }
   }
   return (
