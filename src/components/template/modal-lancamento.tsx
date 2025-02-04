@@ -101,7 +101,7 @@ export const ModalLancamento: FC = () => {
     formData.append("tipo", data.tipo);
     formData.append("forma_pagamento", data.forma_pagamento);
     formData.append("estabelecimentoId", data.estabelecimento);
-    formData.append("comprovante", "data.comprovante[0]");
+    formData.append("comprovante", data.comprovante[0]);
     formData.append("valor", data.valor);
     formData.append("observacao_comprovante", data.observacao);
     formData.append("user", session?.user.username as string);
