@@ -7,7 +7,7 @@ export const revalidate = 0;
 export async function GET(): Promise<void | Response> {
   try {
     const data = await prisma.cronjob.findMany({
-      orderBy: { id: "asc" },
+      orderBy: { date: "desc" },
       take: 6,
     });
     return NextResponse.json(data, { status: 200 });

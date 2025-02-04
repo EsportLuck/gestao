@@ -23,7 +23,6 @@ async function routerDepositOrWithdrawal(
   if (route === "despesa") {
     router = "expenses";
   }
-
   return await fetch(
     `${process.env.APP_URL}/api/v1/entering/deposit-withdrawal/${router}`,
     {
@@ -54,13 +53,6 @@ export async function PUT(
   const lancamentoId = await useLancamento.read();
   if (!lancamentoId) return NextResponse.json({ error: "Id não informado" });
   const { id, referenceDate } = lancamentoId;
-  const establishment = {
-    id: lancamento.establishmentId,
-    referenceDate: referenceDate.toString(),
-  };
-  const useEstablishment = new Establishment(establishment);
-
-  const caixas = await useEstablishment.findUniqueWeeklyCharge();
 
   const put = {
     approved_by: token!.username as any,
@@ -80,22 +72,6 @@ export async function PUT(
         ),
         useLancamento.toFloat(Number(id), put, lancamento.status),
       ]);
-
-      for await (const item of caixas) {
-        await prisma.caixa.update({
-          where: {
-            id: item.id,
-          },
-          data: {
-            total: debitOrCredit(
-              item.value,
-              lancamento.value,
-              lancamento.type,
-              lancamento.status_action,
-            ),
-          },
-        });
-      }
     }
 
     return NextResponse.json({ status: 200 });
