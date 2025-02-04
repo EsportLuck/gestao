@@ -168,7 +168,10 @@ export const LancamentoDropMenu: React.FC<
               onClick={() => {
                 setModalMenu({ ...modalMenu, alertmenu: true });
               }}
-              disabled={disableButton(status, "aprovar")}
+              disabled={
+                disableButton(status, "recusar") ||
+                disableButton(status, "aprovar")
+              }
             >
               Aprovar
             </Button>
