@@ -1,23 +1,26 @@
 import { prisma } from "@/services/prisma";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   req: NextRequest,
   _res: NextResponse,
-): Promise<void | Response> {
+): Promise<Response> {
   const data = await req.json();
   const { id, referenceDate, value, approve, cicloId } = data;
+
   if (
     typeof id !== "number" ||
     !referenceDate ||
     typeof value !== "number" ||
-    !approve ||
+    typeof approve !== "string" ||
     typeof cicloId !== "number"
   ) {
     return NextResponse.json({ status: 400, message: "Dados inválidos" });
   }
-  return await prisma.$transaction(async (tx) => {
-    try {
+
+  try {
+    const { success, message } = await prisma.$transaction(async (tx) => {
       const caixas = await tx.caixa.findMany({
         where: {
           establishmentId: id,
@@ -29,16 +32,16 @@ export async function POST(
           referenceDate: "asc",
         },
       });
+
       if (!caixas.length) {
-        return NextResponse.json(
-          { message: "Nenhum caixa encontrado" },
-          { status: 404 },
-        );
+        return { success: false, message: "Nenhum caixa encontrado" };
       }
+
       const updateCaixas = await tx.caixa.updateMany({
         where: {
-          id: {
-            in: caixas.map((caixa) => caixa.id),
+          establishmentId: id,
+          referenceDate: {
+            gte: new Date(referenceDate),
           },
         },
         data: {
@@ -47,19 +50,21 @@ export async function POST(
           },
         },
       });
+
       if (updateCaixas.count === 0) {
-        return NextResponse.json(
-          { message: "Nenhum caixa encontrado" },
-          { status: 404 },
-        );
+        return { success: false, message: "Nenhum caixa encontrado" };
       }
+
       const novoTotal = caixas[0].total - value;
+      console.log({ novoTotal });
+
       if (novoTotal < 10) {
         await tx.ciclo.update({
           where: { id: cicloId },
           data: { status: "PAGO" },
         });
       }
+
       await tx.prestacao.create({
         data: {
           value: value,
@@ -67,16 +72,27 @@ export async function POST(
           establishmentId: id,
         },
       });
-      return NextResponse.json(
-        { message: "Prestacao criada com sucesso" },
-        { status: 200 },
-      );
-    } catch (error) {
-      console.error("Error processing request:", error);
-      return NextResponse.json(
-        { message: "Internal server error" },
-        { status: 500 },
-      );
+
+      return { success: true, message: "Prestacao criada com sucesso" };
+    });
+
+    return NextResponse.json({ status: 200, success, message });
+  } catch (error) {
+    console.error("Error processing request:", error);
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientValidationError ||
+      error instanceof Prisma.PrismaClientUnknownRequestError ||
+      error instanceof Prisma.PrismaClientRustPanicError ||
+      error instanceof Prisma.PrismaClientInitializationError
+    ) {
+      return NextResponse.json({ status: 500, message: error.message });
+    } else {
+      return NextResponse.json({
+        status: 500,
+        message: "Internal server error",
+      });
     }
-  });
+  }
 }
