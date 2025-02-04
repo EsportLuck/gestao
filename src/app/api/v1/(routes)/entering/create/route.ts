@@ -47,7 +47,8 @@ export async function POST(
         },
       });
 
-      if (!user?.username) return { message: "Usuário não permitido" };
+      if (typeof user?.username !== "string")
+        return { message: "Usuário não permitido" };
       const buscarEstabelecimento = await tx.estabelecimento.findUnique({
         where: {
           id: estabelecimentoId.id,
@@ -71,13 +72,15 @@ export async function POST(
 
       return { message };
     });
+
     if (message !== "Lançamento criado com sucesso")
       return NextResponse.json({ status: 500, message });
     return NextResponse.json({ status: 201, message });
   } catch (error) {
+    console.log(error);
     return NextResponse.json({
       status: 500,
-      message: "Erro interno do servidor",
+      message: "Erro interno do servidor, entering create ",
     });
   }
 }
