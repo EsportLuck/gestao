@@ -8,7 +8,6 @@ export async function POST(
 ): Promise<void | Response> {
   const data = await req.json();
   const initialDate = new Date(data.referenceDate);
-
   try {
     const { message, status } = await prisma.$transaction(async (tx) => {
       const despesas = await tx.despesas.findFirst({
@@ -17,7 +16,7 @@ export async function POST(
           establishmentId: data.id,
         },
       });
-      if (!despesas && despesas === null) {
+      if (typeof despesas?.id === "undefined") {
         await tx.despesas.create({
           data: {
             referenceDate: initialDate,
@@ -25,6 +24,24 @@ export async function POST(
             value: data.value,
           },
         });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       } else {
         await tx.despesas.update({
           where: {
@@ -36,25 +53,55 @@ export async function POST(
             },
           },
         });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
 
-      const updateCaixas = await tx.caixa.updateMany({
-        where: {
-          establishmentId: data.id,
-          referenceDate: {
-            gte: initialDate,
+      if (typeof despesas?.id !== "undefined" && data.approve === "aprovado") {
+        await tx.despesas.update({
+          where: {
+            id: despesas?.id,
           },
-        },
-        data: {
-          total: {
-            decrement: data.value,
+          data: {
+            value: {
+              decrement: data.value,
+            },
           },
-        },
-      });
-      if (updateCaixas.count === 0) {
-        throw new Error(
-          `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
-        );
+        });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              increment: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
       return { status: 200, message: "Despesa aprovada com sucesso" };
     });

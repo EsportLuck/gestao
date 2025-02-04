@@ -17,14 +17,34 @@ export async function POST(
           referenceDate: initialDate,
         },
       });
-      if (!deposito) {
+
+      if (typeof deposito?.id === "undefined") {
         await tx.deposito.create({
           data: {
-            referenceDate: new Date(data.referenceDate),
+            referenceDate: initialDate,
             establishmentId: data.id,
             value: data.value,
           },
         });
+
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              increment: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       } else {
         await tx.deposito.update({
           where: {
@@ -36,26 +56,57 @@ export async function POST(
             },
           },
         });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
 
-      const updateCaixas = await tx.caixa.updateMany({
-        where: {
-          establishmentId: data.id,
-          referenceDate: {
-            gte: initialDate,
+      if (typeof deposito?.id !== "undefined" && data.approve === "aprovado") {
+        await tx.deposito.update({
+          where: {
+            id: deposito?.id,
           },
-        },
-        data: {
-          total: {
-            increment: data.value,
+          data: {
+            value: {
+              decrement: data.value,
+            },
           },
-        },
-      });
-      if (updateCaixas.count === 0) {
-        throw new Error(
-          `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
-        );
+        });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
+
       return { status: 200, message: "Depósito aprovado com sucesso" };
     });
     return NextResponse.json({ status, message });

@@ -17,7 +17,8 @@ export async function POST(
           referenceDate: initialDate,
         },
       });
-      if (!sangria) {
+
+      if (typeof sangria?.id === "undefined") {
         await tx.sangria.create({
           data: {
             referenceDate: new Date(data.referenceDate),
@@ -25,6 +26,26 @@ export async function POST(
             value: data.value,
           },
         });
+
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       } else {
         await tx.sangria.update({
           where: {
@@ -36,26 +57,60 @@ export async function POST(
             },
           },
         });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
 
-      const updateCaixas = await tx.caixa.updateMany({
-        where: {
-          establishmentId: data.id,
-          referenceDate: {
-            gte: initialDate,
+      if (typeof sangria?.id !== "undefined" && data.approve === "aprovado") {
+        await tx.sangria.update({
+          where: {
+            id: sangria.id,
           },
-        },
-        data: {
-          total: {
-            decrement: data.value,
+          data: {
+            value: {
+              decrement: data.value,
+            },
           },
-        },
-      });
-      if (updateCaixas.count === 0) {
-        throw new Error(
-          `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
-        );
+        });
+
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              increment: data.value,
+            },
+          },
+        });
+
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
+
       return { status: 200, message: "Sangria aprovada com sucesso" };
     });
     return NextResponse.json({ status, message });

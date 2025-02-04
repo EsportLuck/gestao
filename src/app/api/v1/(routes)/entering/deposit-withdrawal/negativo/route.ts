@@ -16,7 +16,8 @@ export async function POST(
           referenceDate: initialDate,
         },
       });
-      if (!negativo) {
+
+      if (typeof negativo?.id === "undefined") {
         await tx.negativo.create({
           data: {
             referenceDate: new Date(data.referenceDate),
@@ -24,6 +25,26 @@ export async function POST(
             value: data.value,
           },
         });
+
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              increment: data.value,
+            },
+          },
+        });
+
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       } else {
         await tx.negativo.update({
           where: {
@@ -35,26 +56,59 @@ export async function POST(
             },
           },
         });
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              increment: data.value,
+            },
+          },
+        });
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
 
-      const updateCaixas = await tx.caixa.updateMany({
-        where: {
-          establishmentId: data.id,
-          referenceDate: {
-            gte: initialDate,
+      if (typeof negativo?.id !== "undefined" && data.approve === "aprovado") {
+        await tx.negativo.update({
+          where: {
+            id: negativo.id,
           },
-        },
-        data: {
-          total: {
-            increment: data.value,
+          data: {
+            value: {
+              decrement: data.value,
+            },
           },
-        },
-      });
-      if (updateCaixas.count === 0) {
-        throw new Error(
-          `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
-        );
+        });
+
+        const updateCaixas = await tx.caixa.updateMany({
+          where: {
+            establishmentId: data.id,
+            referenceDate: {
+              gte: initialDate,
+            },
+          },
+          data: {
+            total: {
+              decrement: data.value,
+            },
+          },
+        });
+
+        if (updateCaixas.count === 0) {
+          throw new Error(
+            `Nenhum caixa encontrado para o estabelecimento ${data.id} na data ${initialDate.toISOString()}.`,
+          );
+        }
       }
+
       return { status: 200, message: "Negativo aprovado com sucesso" };
     });
 
