@@ -113,7 +113,10 @@ const columns: ColumnDef<EstabelecimentosExtrato>[] = [
         const obterCiclo = obterInicioEFimDoCiclo(date);
 
         return (
-          <div className="flex justify-center items-center gap-2" key={1}>
+          <div
+            className="flex justify-center items-center gap-2"
+            key={row.original.status.toString()}
+          >
             <div
               key={statusOption.reference_date.toString()}
               title={
