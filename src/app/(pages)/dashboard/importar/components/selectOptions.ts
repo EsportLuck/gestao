@@ -57,6 +57,9 @@ export const reportOptions = (options: string | undefined) => {
           site: "Sportvip - Junior magalhaes",
         },
         {
+          site: "Sportvip - Wendel esportenet jb",
+        },
+        {
           site: "Sportvip - Luciano baiano/Wendel pe",
         },
         {

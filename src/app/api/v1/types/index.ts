@@ -131,6 +131,9 @@ export interface IFormatterType {
   "sportvip - junior magalhaes": (
     worksheet: WorkSheet,
   ) => IFormattedReportSportNet[];
+  "sportvip - wendel esportenet jb": (
+    worksheet: WorkSheet,
+  ) => IFormattedReportSportNet[];
   "sportvip - luciano baiano/wendel pe": (
     worksheet: WorkSheet,
   ) => IFormattedReportSportNet[];
@@ -196,6 +199,7 @@ export type TReportEsportNet =
   | "sportvip - wendel ita"
   | "sportvip - wendel/londrina"
   | "sportvip - junior magalhaes"
+  | "sportvip - wendel esportenet jb"
   | "sportvip - luciano baiano/wendel pe"
   | "sportvip - wendel/minas"
   | "sportvip - renan coutinho"

@@ -43,6 +43,7 @@ export interface FormatterFunctions {
   "sportvip - wendel ita": typeof formatterReportVip;
   "sportvip - wendel/londrina": typeof formatterReportVip;
   "sportvip - junior magalhaes": typeof formatterReportVip;
+  "sportvip - wendel esportenet jb": typeof formatterReportVip;
   "sportvip - luciano baiano/wendel pe": typeof formatterReportVip;
   "sportvip - wendel/minas": typeof formatterReportVip;
   "sportvip - renan coutinho": typeof formatterReportVip;
@@ -89,6 +90,7 @@ export const formatterMap: FormatterFunctions = {
   "sportvip - wendel ita": formatterReportVip,
   "sportvip - wendel/londrina": formatterReportVip,
   "sportvip - junior magalhaes": formatterReportVip,
+  "sportvip - wendel esportenet jb": formatterReportVip,
   "sportvip - luciano baiano/wendel pe": formatterReportVip,
   "sportvip - wendel/minas": formatterReportVip,
   "sportvip - renan coutinho": formatterReportVip,
@@ -117,6 +119,7 @@ export const reportSites = {
     "sportvip - wendel ita",
     "sportvip - wendel/londrina",
     "sportvip - junior magalhaes",
+    "sportvip - wendel esportenet jb",
     "sportvip - luciano baiano/wendel pe",
     "sportvip - wendel/minas",
     "sportvip - renan coutinho",
