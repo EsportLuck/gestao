@@ -52,11 +52,11 @@ function validarDados(
   ): item is IFormattedReportSportNet => {
     return (
       typeof item.Estabelecimento === "string" &&
-      typeof item.Vendas === "number" &&
-      typeof item.Quantidade === "number" &&
-      typeof item.Comissão === "number" &&
-      typeof item["Prêmios/Saques"] === "number" &&
-      typeof item.Líquido === "number"
+      isNaN(item.Vendas) &&
+      isNaN(item.Quantidade) &&
+      isNaN(item.Comissão) &&
+      isNaN(item["Prêmios/Saques"]) &&
+      isNaN(item.Líquido)
     );
   };
 

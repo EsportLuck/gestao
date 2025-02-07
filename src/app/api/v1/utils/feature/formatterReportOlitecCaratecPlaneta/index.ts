@@ -50,17 +50,18 @@ export const formatterReportOlitecCaratecPlaneta = (
       if (
         typeof item.Estabelecimento === "string" &&
         item.Quantidade === 0 &&
-        typeof item.Vendas === "number" &&
-        typeof item.Comissão === "number" &&
-        typeof item["Prêmios"] === "number" &&
-        typeof item.Líquido === "number"
-      )
+        !isNaN(item.Vendas) &&
+        !isNaN(item.Comissão) &&
+        !isNaN(item.Prêmios) &&
+        !isNaN(item.Líquido)
+      ) {
         return true;
-      else return false;
+      } else return false;
     },
   );
   if (!validarValores) {
     return [];
   }
+
   return obterValoresEmFormatoParaSalvarNoBanco;
 };
