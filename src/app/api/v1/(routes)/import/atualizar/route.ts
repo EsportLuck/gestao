@@ -121,9 +121,7 @@ export async function PATCH(request: NextRequest) {
                     premioDoEstabelecimento.establishment.name ===
                     estabelecimento.estabelecimento,
                 );
-                const premioDoArquivo = Number(
-                  (estabelecimento.premios * 100).toFixed(),
-                );
+                const premioDoArquivo = Number(estabelecimento.premios);
 
                 if (premioDoBanco?.value === premioDoArquivo) continue;
                 const caixasDoEstabelecimentos = caixas.filter(
@@ -139,10 +137,9 @@ export async function PATCH(request: NextRequest) {
 
                 const diferençaNoLiquido =
                   (liquidoDoBanco?.value || 0) -
-                  Number((estabelecimento.liquido * 100).toFixed());
-                console.log({ liquidoDoBanco });
+                  Number(estabelecimento.liquido);
                 await liquidoService.update(liquidoDoBanco?.id as number, {
-                  value: Number((estabelecimento.liquido * 100).toFixed()),
+                  value: Number(estabelecimento.liquido),
                   updatedAt: new Date(),
                 });
 
@@ -186,7 +183,7 @@ export async function PATCH(request: NextRequest) {
                     estabelecimento.Estabelecimento,
                 );
                 const premioDoArquivo = Number(
-                  (estabelecimento["Prêmios/Saques"] * 100).toFixed(),
+                  estabelecimento["Prêmios/Saques"],
                 );
 
                 if (premioDoBanco?.value === premioDoArquivo) continue;
@@ -203,10 +200,10 @@ export async function PATCH(request: NextRequest) {
 
                 const diferençaNoLiquido =
                   (liquidoDoBanco?.value || 0) -
-                  Number((estabelecimento.Líquido * 100).toFixed());
+                  Number(estabelecimento.Líquido);
                 console.log({ liquidoDoBanco });
                 await liquidoService.update(liquidoDoBanco?.id as number, {
-                  value: Number((estabelecimento.Líquido * 100).toFixed()),
+                  value: Number(estabelecimento.Líquido),
                   updatedAt: new Date(),
                 });
 
