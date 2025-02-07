@@ -4,14 +4,30 @@ import { IFormattedReportSportNet, IReportVip } from "@/app/api/v1/types";
 import { xlsxReader } from "@/app/api/controller";
 
 export const formatterReportVip = (
-  data: WorkSheet,
+  data: WorkSheet | Array<WorkSheet>,
 ): IFormattedReportSportNet[] => {
-  const reportJson = xlsxReader.toJson<IReportVip>(data, {
-    rawNumbers: false,
-  });
+  let reportJson: any;
+  if (Array.isArray(data)) {
+    for (const sheet of data) {
+      let sheetJson = xlsxReader.toJson<IReportVip>(sheet, {
+        rawNumbers: false,
+      });
+
+      if (!Array.isArray(reportJson)) {
+        reportJson = sheetJson;
+      } else {
+        reportJson = [...reportJson, ...sheetJson];
+      }
+    }
+  } else {
+    reportJson = xlsxReader.toJson<IReportVip>(data, {
+      rawNumbers: false,
+    });
+  }
+
   const establishments = rowsWithEstablishments(reportJson);
-  const establishmentsWithSales = establishmentWithSales(establishments);
-  const isValid = establishmentsWithSales.every((item) => {
+  const establishmentsWithSalesData = establishmentWithSales(establishments);
+  const isValid = establishmentsWithSalesData.every((item) => {
     return (
       typeof item["Cód."] === "string" &&
       typeof item.Cambista === "string" &&
@@ -25,7 +41,8 @@ export const formatterReportVip = (
   if (!isValid) {
     return [];
   }
-  return establishmentsWithSales.map((item): IFormattedReportSportNet => {
+
+  return establishmentsWithSalesData.map((item): IFormattedReportSportNet => {
     return {
       Estabelecimento: item["Cód."] + " - " + item.Cambista.trim(),
       Vendas: Number((formatNumber(item["Valor apostado"]) * 100).toFixed(0)),

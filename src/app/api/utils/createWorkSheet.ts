@@ -40,6 +40,16 @@ export const createWorkSheet = async (file: File, tipo?: string) => {
     const worksheet = dataFile.Sheets[dataFile.SheetNames[1]];
     return worksheet;
   }
+  if (tipo === "sportshow - wendel alagoas sup") {
+    dataFile = xlsxReader.readFile(pathFile, {
+      raw: true,
+    });
+    const worksheet = [];
+    for (const sheet of dataFile.SheetNames) {
+      worksheet.push(dataFile.Sheets[sheet]);
+    }
+    return worksheet;
+  }
   const worksheet = dataFile.Sheets[dataFile.SheetNames[0]];
 
   return worksheet;
