@@ -104,14 +104,31 @@ export class Entering {
   }
   async read(): Promise<Lancamentos | null> {
     try {
-      const { enteringId } = this.data;
-      return await prisma.lancamentos.findUnique({
+      const { enteringId, status } = this.data;
+      const lançamento = await prisma.lancamentos.findUnique({
         where: {
           id: enteringId,
         },
       });
+      if (lançamento?.status === status) {
+        throw new Error("Lançamento já aprovado");
+      }
+      return lançamento;
     } catch (error) {
-      throw new Error("Encontrar lançamento");
+      if (
+        error instanceof Error ||
+        error instanceof TypeError ||
+        error instanceof SyntaxError ||
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientUnknownRequestError ||
+        error instanceof Prisma.PrismaClientRustPanicError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
+        throw new Error(error.message);
+      } else {
+        throw new Error("Encontrar lançamento: error desconhecido");
+      }
     }
   }
   async readAll(): Promise<Partial<Lancamentos>[] | null> {

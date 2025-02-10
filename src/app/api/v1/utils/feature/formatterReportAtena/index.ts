@@ -23,11 +23,11 @@ const validarValores = (report: TReportAtena[]) => {
       typeof item.Localidade === "string" &&
       typeof item.Seção === "string" &&
       typeof item.Estabelecimento === "string" &&
-      isNaN(item.Quantidade) &&
-      isNaN(item.Vendas) &&
-      isNaN(item.Comissão) &&
-      isNaN(item["Prêmios/Saques"]) &&
-      isNaN(item.Líquido)
+      !isNaN(item.Quantidade) &&
+      !isNaN(item.Vendas) &&
+      !isNaN(item.Comissão) &&
+      !isNaN(item["Prêmios/Saques"]) &&
+      !isNaN(item.Líquido)
     )
       return true;
     else return false;
