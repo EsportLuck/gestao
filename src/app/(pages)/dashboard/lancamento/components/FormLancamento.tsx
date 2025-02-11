@@ -74,7 +74,22 @@ export const FormLancamento = () => {
 
   async function formSubmit(data: TFormSchema) {
     try {
+      if (
+        data.data_final === undefined &&
+        data.data_inicial === undefined &&
+        data.estabelecimento === undefined &&
+        data.forma_pagamento === undefined &&
+        data.tipo === undefined
+      ) {
+        toast({
+          title: "Error",
+          description: "Nenhum campo foi preenchido",
+          variant: "destructive",
+        });
+        return;
+      }
       const fetch = new FetchHttpClient();
+
       const { data: response } = await fetch.post<LancamentosTable[]>(
         "/api/v1/entering/read",
         data,
