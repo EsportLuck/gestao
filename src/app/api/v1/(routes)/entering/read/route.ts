@@ -8,7 +8,13 @@ export async function POST(
   _res: NextResponse,
 ): Promise<void | Response> {
   const data = await req.json();
-  if (Object.entries(data).length === 0) {
+  if (
+    data.data_final === undefined &&
+    data.data_inicial === undefined &&
+    data.estabelecimento === undefined &&
+    data.forma_pagamento === undefined &&
+    data.tipo === undefined
+  ) {
     return NextResponse.json({ error: "Data não informada" }, { status: 400 });
   }
   const lancamento = new Entering(data);
