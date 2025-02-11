@@ -35,10 +35,10 @@ function isValid(formattedReport: TReportFratec[]) {
   return formattedReport.every((item) => {
     if (
       typeof item.Nome === "string" &&
-      isNaN(item.Vendas) &&
-      isNaN(item.Comissão) &&
-      isNaN(item["Prêmios Pagos"]) &&
-      isNaN(item.Líquido)
+      !isNaN(item.Vendas) &&
+      !isNaN(item.Comissão) &&
+      !isNaN(item["Prêmios Pagos"]) &&
+      !isNaN(item.Líquido)
     )
       return true;
     else return false;
