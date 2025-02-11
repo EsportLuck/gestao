@@ -27,22 +27,7 @@ export const formatterReportVip = (
 
   const establishments = rowsWithEstablishments(reportJson);
   const establishmentsWithSalesData = establishmentWithSales(establishments);
-  const isValid = establishmentsWithSalesData.every((item) => {
-    return (
-      typeof item["Cód."] === "string" &&
-      typeof item.Cambista === "string" &&
-      !isNaN(formatNumber(item["Valor apostado"])) &&
-      !isNaN(formatNumber(item["Qtd. bilhetes"])) &&
-      !isNaN(formatNumber(item["Comissão cambista"])) &&
-      !isNaN(formatNumber(item["Valor Pago"])) &&
-      !isNaN(formatNumber(item["Líq. Camb"]))
-    );
-  });
-  if (!isValid) {
-    return [];
-  }
-
-  return establishmentsWithSalesData.map((item): IFormattedReportSportNet => {
+  const formatterValeus = establishmentsWithSalesData.map((item) => {
     return {
       Estabelecimento: item["Cód."] + " - " + item.Cambista.trim(),
       Vendas: Number((formatNumber(item["Valor apostado"]) * 100).toFixed(0)),
@@ -53,9 +38,36 @@ export const formatterReportVip = (
       "Prêmios/Saques": Number(
         (formatNumber(item["Valor Pago"]) * 100).toFixed(0),
       ),
-      Líquido: Number((formatNumber(item["Líq. Camb"]) * 100).toFixed(0)),
+      Líquido: Number((formatNumber(item["Valor Líq."]) * 100).toFixed(0)),
     };
   });
+  const valeusFilter = formatterValeus.filter((item) => {
+    if (
+      typeof item.Estabelecimento === "string" &&
+      !isNaN(item.Comissão) &&
+      !isNaN(item.Vendas) &&
+      !isNaN(item.Líquido) &&
+      !isNaN(item.Quantidade) &&
+      !isNaN(item["Prêmios/Saques"])
+    )
+      return true;
+    else return false;
+  });
+  const isValid = valeusFilter.every((item) => {
+    return (
+      typeof item.Estabelecimento === "string" &&
+      !isNaN(item.Comissão) &&
+      !isNaN(item.Vendas) &&
+      !isNaN(item.Líquido) &&
+      !isNaN(item.Quantidade) &&
+      !isNaN(item["Prêmios/Saques"])
+    );
+  });
+  if (!isValid) {
+    return [];
+  }
+
+  return valeusFilter;
 };
 
 function establishmentWithSales(data: IReportVip[]) {
