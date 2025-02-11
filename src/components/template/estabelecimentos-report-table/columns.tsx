@@ -119,16 +119,15 @@ const columns: ColumnDef<EstabelecimentosExtrato>[] = [
           >
             <div
               key={statusOption.reference_date.toString()}
-              title={
-                obterCiclo.inicioDoCiclo.toLocaleDateString() +
-                " - " +
-                obterCiclo.finalDoCiclo.toLocaleDateString()
-              }
-              className={` rounded-full text-center font-bold `}
+              className={` rounded-full text-center font-bold`}
             >
               {
                 <span
-                  title={`Status de pagamento ${statusOption.status.toLocaleLowerCase()}`}
+                  title={`Status de pagamento ${statusOption.status.toLocaleLowerCase()} ${
+                    obterCiclo.inicioDoCiclo.toLocaleDateString() +
+                    " - " +
+                    obterCiclo.finalDoCiclo.toLocaleDateString()
+                  }`}
                 >
                   {statusOption.status.toLowerCase() === "pago" ? "🟢" : "🟡"}
                 </span>
