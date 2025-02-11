@@ -139,6 +139,7 @@ export class Entering {
         estabelecimento,
         tipo,
         forma_pagamento,
+        empresaId,
       } = this.data;
       const lte = data_final?.replace(/03:00:00/, "23:59:59");
       const data = await prisma.lancamentos.findMany({
@@ -167,6 +168,7 @@ export class Entering {
           recorded_by: true,
           url: true,
           downloadUrl: true,
+          empresaId: true,
         },
       });
       let filtros = data.map((items) => {
@@ -182,6 +184,7 @@ export class Entering {
           tipo: items.type,
           estabelecimento_id: items.establishment.id,
           forma_pagamento: items.paymentMethod,
+          empresaId: items.empresaId,
         };
       });
 
@@ -190,6 +193,11 @@ export class Entering {
           (item) => item.estabelecimento === estabelecimento,
         );
       if (tipo) filtros = filtros.filter((item) => item.tipo === tipo);
+
+      if (empresaId)
+        filtros = filtros.filter(
+          (item) => item.empresaId === Number(empresaId),
+        );
       if (forma_pagamento)
         filtros = filtros.filter(
           (item) => item.forma_pagamento === forma_pagamento,
@@ -204,8 +212,13 @@ export class Entering {
   }
   async readWeek(): Promise<Partial<Lancamentos>[] | null> {
     try {
-      const { data_inicial, estabelecimento, tipo, forma_pagamento } =
-        this.data;
+      const {
+        data_inicial,
+        estabelecimento,
+        tipo,
+        forma_pagamento,
+        empresaId,
+      } = this.data;
       let getDate = data_inicial?.toString().replace(/T.+Z/, "").split("-");
       const [year, mon, day] = getDate as string[];
 
@@ -241,6 +254,7 @@ export class Entering {
           downloadUrl: true,
           recorded_by: true,
           id_ciclo: true,
+          empresaId: true,
         },
       });
       let filtros = data.map((items) => {
@@ -258,6 +272,7 @@ export class Entering {
           forma_pagamento: items.paymentMethod,
           observacoes: items.observation,
           id_ciclo: items.id_ciclo,
+          empresaId: items.empresaId,
         };
       });
 
@@ -266,6 +281,13 @@ export class Entering {
           (item) => item.estabelecimento === estabelecimento,
         );
       if (tipo) filtros = filtros.filter((item) => item.tipo === tipo);
+      console.log(typeof empresaId);
+      console.log({ empresaId });
+      if (empresaId)
+        filtros = filtros.filter(
+          (item) => item.empresaId === Number(empresaId),
+        );
+
       if (forma_pagamento)
         filtros = filtros.filter(
           (item) => item.forma_pagamento === forma_pagamento,
@@ -280,7 +302,8 @@ export class Entering {
   }
   async readWithReleaseDateOf(): Promise<Partial<Lancamentos>[] | null> {
     try {
-      const { data_final, estabelecimento, tipo, forma_pagamento } = this.data;
+      const { data_final, estabelecimento, tipo, forma_pagamento, empresaId } =
+        this.data;
       let getDate = data_final?.toString().replace(/T.+Z/, "").split("-");
       const [year, mon, day] = getDate as string[];
       const gte = new Date(Number(year), Number(mon) - 1, Number(day));
@@ -313,6 +336,7 @@ export class Entering {
           downloadUrl: true,
           recorded_by: true,
           id_ciclo: true,
+          empresaId: true,
         },
       });
 
@@ -331,6 +355,7 @@ export class Entering {
           forma_pagamento: items.paymentMethod,
           observacoes: items.observation,
           id_ciclo: items.id_ciclo,
+          empresaId: items.empresaId,
         };
       });
 
@@ -339,6 +364,11 @@ export class Entering {
           (item) => item.estabelecimento === estabelecimento,
         );
       if (tipo) filtros = filtros.filter((item) => item.tipo === tipo);
+
+      if (empresaId)
+        filtros = filtros.filter(
+          (item) => item.empresaId === Number(empresaId),
+        );
       if (forma_pagamento)
         filtros = filtros.filter(
           (item) => item.forma_pagamento === forma_pagamento,

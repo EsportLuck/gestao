@@ -31,7 +31,7 @@ import { ComboboxEstablishment } from "@/components/template";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { LancamentosTable } from "@/components/template/table-lancamentos/columns";
 import { useFetch } from "@/hooks/useFetch";
-import { Estabelecimento } from "@prisma/client";
+import { Empresa, Estabelecimento } from "@prisma/client";
 
 const FormSchema = z.object({
   data_inicial: z
@@ -47,6 +47,7 @@ const FormSchema = z.object({
   tipo: z.string({}).optional(),
   forma_pagamento: z.string({}).optional(),
   estabelecimento: z.string({}).optional(),
+  empresaId: z.string({}).optional(),
 });
 
 type TFormSchema = z.infer<typeof FormSchema>;
@@ -64,6 +65,18 @@ export const FormLancamento = () => {
   const obterEstabelecimentos = useFetch<Partial<Estabelecimento>[]>(
     "/api/v1/management/establishments",
   ).data;
+  const obterEmpresas = useFetch<{ empresas: Partial<Empresa>[] }>(
+    "/api/v1/management/empresa/obterTodas",
+  );
+  const empresas = useMemo(() => {
+    if (obterEmpresas.data && obterEmpresas.data.empresas.length > 0) {
+      return obterEmpresas.data.empresas.map((empresa) => ({
+        ...empresa,
+        name: empresa.name,
+      }));
+    }
+    return [];
+  }, [obterEmpresas.data]);
 
   const estabelecimentos = useMemo(() => {
     if (obterEstabelecimentos && obterEstabelecimentos.length > 0) {
@@ -79,7 +92,8 @@ export const FormLancamento = () => {
         data.data_inicial === undefined &&
         data.estabelecimento === undefined &&
         data.forma_pagamento === undefined &&
-        data.tipo === undefined
+        data.tipo === undefined &&
+        data.empresaId === undefined
       ) {
         toast({
           title: "Error",
@@ -293,6 +307,37 @@ export const FormLancamento = () => {
                   }
                 }}
               />
+              {errors["estabelecimento"] && (
+                <ErrorMessageInput error={errors} name={"estabelecimento"} />
+              )}
+            </>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="empresaId"
+          render={({ field }) => (
+            <>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger className="w-[240px] max-sm:w-full;">
+                  <SelectValue placeholder="empresa" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    {empresas.length > 0 &&
+                      empresas.map((empresa) => (
+                        <SelectItem
+                          key={empresa.id}
+                          value={empresa.id?.toString() as string}
+                        >
+                          {empresa.name}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               {errors["estabelecimento"] && (
                 <ErrorMessageInput error={errors} name={"estabelecimento"} />
               )}
