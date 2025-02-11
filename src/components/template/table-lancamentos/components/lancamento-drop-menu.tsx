@@ -24,6 +24,7 @@ import { useContext, useState } from "react";
 import { LancamentosTable } from "../columns";
 import { LancamentoContext } from "@/context/lancamentoContext";
 import { MenuObservacoes } from "../../menu-observacoes";
+import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 
 const disableButton = (
   status: "reprovado" | "analise" | "aprovado",
@@ -65,23 +66,20 @@ export const LancamentoDropMenu: React.FC<
     alertmenu: false,
     observacoesmenu: false,
   });
+
   const [isSubmitting, SetIsSubmitting] = useState(false);
   const [statusLancamento, setStatusLancamento] = useState<
     "aprovado" | "reprovado"
   >("aprovado");
-  const { lancamento, setLancamento } = useContext(LancamentoContext);
-  const modifyLancamento = (
-    statusLancamento: "reprovado" | "analise" | "aprovado",
-    id: string,
-  ) => {
-    const data: LancamentosTable[] = lancamento.map((item) => {
-      if (item.id == id) {
-        return { ...item, status: statusLancamento };
-      } else {
-        return item;
-      }
-    });
-    setLancamento(data);
+  const { setLancamento } = useContext(LancamentoContext);
+
+  const modifyLancamento = async () => {
+    const fetchClient = new FetchHttpClient();
+    const { data: response } = await fetchClient.get<LancamentosTable[]>(
+      "/api/v1/management/lancamento/obter?tipo=analise",
+    );
+
+    setLancamento(response || []);
   };
 
   const strategyAction = async (props: IStrategyAction) => {
@@ -98,7 +96,6 @@ export const LancamentoDropMenu: React.FC<
             description: `${result.message}`,
             variant: "success",
           });
-          modifyLancamento("aprovado", props.id);
         } else {
           toast({
             title: "Falha",
@@ -106,6 +103,7 @@ export const LancamentoDropMenu: React.FC<
             variant: "destructive",
           });
         }
+        await modifyLancamento();
       } catch (error: any) {
         console.error("lancamento-drop-menu strategyAction", error);
         if (error instanceof Error) {
@@ -136,7 +134,7 @@ export const LancamentoDropMenu: React.FC<
           description: "Alteração feita com sucesso",
           variant: "success",
         });
-        modifyLancamento("reprovado", props.id);
+        await modifyLancamento();
       } catch (error) {
         console.error("lacamentoDropMenu strategyAction", error);
         toast({
