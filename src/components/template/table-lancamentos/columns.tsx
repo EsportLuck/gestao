@@ -127,7 +127,7 @@ export const columns: ColumnDef<LancamentosTable>[] = [
                 <View />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-h-[500px] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Comprovante</DialogTitle>
                 <DialogDescription>
@@ -147,7 +147,6 @@ export const columns: ColumnDef<LancamentosTable>[] = [
                   height={480}
                   src={row.original.url}
                   alt="comprovante"
-                  className="mx-auto"
                 />
               )}
             </DialogContent>
