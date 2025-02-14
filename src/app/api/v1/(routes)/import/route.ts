@@ -47,8 +47,10 @@ export async function POST(req: Request) {
   const cronJob = await prisma.cronjob.findMany({
     where: {
       date: new Date(dados.weekReference as Date),
+      name: dados.company,
     },
   });
+
   if (cronJob.length === 0) {
     return NextResponse.json({
       status: 403,
