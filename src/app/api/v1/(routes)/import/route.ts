@@ -44,6 +44,18 @@ export async function POST(req: Request) {
   if (seImportacaoJaExiste)
     return NextResponse.json({ status: 409, message: "Importação já existe" });
 
+  const cronJob = await prisma.cronjob.findMany({
+    where: {
+      date: new Date(dados.weekReference as Date),
+    },
+  });
+  if (cronJob.length === 0) {
+    return NextResponse.json({
+      status: 403,
+      message: "Importação não pode ser realizada fora da sequência",
+    });
+  }
+
   const [todosEstabelecimentosDoSite, todasAsLocalidades, todasAsSeções] =
     await Promise.all([
       estabelecimentoService.encontrarTodosOsEstabelecimentos(),
