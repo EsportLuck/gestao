@@ -1,7 +1,10 @@
 "use client";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { obterInicioEFimDoCiclo } from "@/app/api/v1/utils/obterInicioEFimDoCiclo";
-import { LoadingSpinnerModal } from "@/components/template";
+import {
+  ComboboxEstablishment,
+  LoadingSpinnerModal,
+} from "@/components/template";
 import { TitlePage } from "@/components/TitlePage";
 import {
   Button,
@@ -78,14 +81,7 @@ export default function Prestacao() {
       })) || []
     );
   }, [estabelecimentos.data]);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const estabelecimentosFiltrados = useMemo(() => {
-    if (!searchTerm) return estabelecimentosFormatados;
-    return estabelecimentosFormatados.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [searchTerm, estabelecimentosFormatados]);
   const [prestacaoData, setPrestacaoData] = useState<{
     estabelecimentos: {
       id: number;
@@ -154,11 +150,7 @@ export default function Prestacao() {
       const response: {
         data: { status: number; message: string } | undefined;
         status: number;
-        message: string;
-      } = await fetch.postFormData(
-        "/api/v1/entering/prestacao/criar",
-        formData,
-      );
+      } = await fetch.post("/api/v1/entering/prestacao/criar", formData);
       if (response.data?.status === 201) {
         toast({
           description: (
@@ -208,7 +200,7 @@ export default function Prestacao() {
 
   return (
     <main className="grid gap-2 ">
-      <TitlePage title="Prestação" />
+      <TitlePage title="Conclusão de ciclo" />
       <Form {...form}>
         <form
           className={`grid gap-3 place-items-start mt-6 ${isSubmitting ? "cursor-progress" : ""} `}
@@ -224,47 +216,20 @@ export default function Prestacao() {
                   <FormLabel className="decoration-foreground">
                     Selecione um estabelecimento
                   </FormLabel>
-                  <Select
-                    onValueChange={(estabelecimentos) => {
-                      field.onChange(estabelecimentos);
-                      setPrestacaoData({
-                        ...prestacaoData,
-                        estabelecimentoSelecionado:
-                          JSON.parse(estabelecimentos).id,
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="w-[240px]">
-                      <Button
-                        placeholder="Escolha um estabelecimento"
-                        style={{ all: "unset" }}
-                        asChild
-                      >
-                        <span>
-                          {field.value
-                            ? JSON.parse(field.value).name
-                            : "Escolha uma Empresa"}
-                        </span>
-                      </Button>
-                    </SelectTrigger>
+                  <ComboboxEstablishment
+                    onValueChange={(value) => {
+                      field.onChange(value);
 
-                    <SelectContent>
-                      <SelectGroup>
-                        <Input
-                          placeholder="escolha um estabelecimentos"
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {estabelecimentosFiltrados.map((item) => (
-                          <SelectItem
-                            key={item.id}
-                            value={JSON.stringify(item)}
-                          >
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                      console.log(Object.entries(JSON.stringify(value)));
+                      // setPrestacaoData((prev) => ({
+                      //   ...prev,
+                      //   estabelecimentoSelecionado:
+                      //     JSON.parse(value).id.toString(),
+                      // }));
+                    }}
+                    establishments={estabelecimentosFormatados}
+                  />
+
                   <FormMessage className="text-xs" />
                 </FormItem>
               );

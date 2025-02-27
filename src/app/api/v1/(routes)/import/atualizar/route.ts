@@ -201,7 +201,6 @@ export async function PATCH(request: NextRequest) {
                 const diferençaNoLiquido =
                   (liquidoDoBanco?.value || 0) -
                   Number(estabelecimento.Líquido);
-                console.log({ liquidoDoBanco });
                 await liquidoService.update(liquidoDoBanco?.id as number, {
                   value: Number(estabelecimento.Líquido),
                   updatedAt: new Date(),

@@ -1,6 +1,6 @@
 import { SupervisorController } from "@/app/api/controller";
-import { InternalServerError } from "@/errors";
-import { prisma } from "@/services/prisma";
+import { InternalServerError } from "@/domain/errors";
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const revalidate = 0;

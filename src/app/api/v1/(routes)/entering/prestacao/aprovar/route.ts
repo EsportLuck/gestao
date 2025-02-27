@@ -56,7 +56,6 @@ export async function POST(
       }
 
       const novoTotal = caixas[0].total - value;
-      console.log({ novoTotal });
 
       if (novoTotal < 10) {
         await tx.ciclo.update({

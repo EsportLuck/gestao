@@ -35,8 +35,16 @@ async function routerDepositOrWithdrawal(
       router = "expenses";
       break;
     case "negativo":
-      router = "negativo";
-      break;
+      return await fetch(
+        `${process.env.APP_URL}/api/v1/entering/negativo/aprovar`,
+        {
+          body: JSON.stringify({ id, referenceDate, value, approve, cicloId }),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
     case "prestação":
       return await fetch(
         `${process.env.APP_URL}/api/v1/entering/prestacao/aprovar`,

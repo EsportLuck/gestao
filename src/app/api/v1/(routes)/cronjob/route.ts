@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (!success) {
-      return NextResponse.json({ success: false, message }, { status: 500 });
+      return NextResponse.json({ success, message }, { status: 500 });
     }
 
     return NextResponse.json({ success, message }, { status: 200 });

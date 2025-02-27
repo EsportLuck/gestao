@@ -1,7 +1,6 @@
 import { prisma } from "@/services/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Entering } from "@/app/api/models/entering.model";
-import { findEstabelecimentoInDB } from "@/app/api/v1/utils/find";
 
 export async function POST(
   req: NextRequest,
@@ -17,14 +16,12 @@ export async function POST(
     | "dinheiro"
     | "pix"
     | undefined;
-  const estabelecimento = data.get("estabelecimentoId");
+  const estabelecimento = data.get("estabelecimentoId") as string;
   const value = Number(data.get("valor"));
   const observacao_comprovante = data.get("observacao_comprovante") as string;
   const recorded_by = data.get("user") as string;
   const data_reference = new Date(data.get("date_reference") as string);
-  const estabelecimentoId = await findEstabelecimentoInDB(
-    estabelecimento as string,
-  );
+  const estabelecimentoId = Number(estabelecimento);
   const comprovante = data.get("comprovante") as File;
 
   if (
@@ -51,7 +48,7 @@ export async function POST(
         return { message: "Usuário não permitido" };
       const buscarEstabelecimento = await tx.estabelecimento.findUnique({
         where: {
-          id: estabelecimentoId.id,
+          id: estabelecimentoId,
         },
       });
       if (!buscarEstabelecimento?.empresaId)
@@ -62,7 +59,7 @@ export async function POST(
         observacao_comprovante,
         value,
         tipo,
-        estabelecimentoId: estabelecimentoId.id,
+        estabelecimentoId: estabelecimentoId,
         recorded_by,
         comprovante,
         empresaId: buscarEstabelecimento.empresaId,
@@ -77,7 +74,7 @@ export async function POST(
       return NextResponse.json({ status: 500, message });
     return NextResponse.json({ status: 201, message });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return NextResponse.json({
       status: 500,
       message: "Erro interno do servidor, entering create ",

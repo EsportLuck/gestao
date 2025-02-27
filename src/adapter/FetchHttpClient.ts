@@ -1,127 +1,95 @@
-import { unknown } from "zod";
+import { AppError } from "@/domain/errors";
 
-interface HttpClient {
-  get<T>(
-    url: string,
-  ): Promise<{ data: T | undefined; status: number; message: string }>;
-  post<T>(
-    url: string,
-    formData: any,
-    headers?: any,
-    cache?: RequestCache,
-  ): Promise<{ data: T | undefined; status: number; message: string }>;
-  patch<T>(
-    url: string,
-    formData: any,
-    headers?: any,
-    cache?: RequestCache,
-  ): Promise<{ data: T | undefined; status: number; message: string }>;
+interface HttpResponse<T> {
+  data: T;
+  status: number;
 }
 
-export class FetchHttpClient implements HttpClient {
-  async get<T>(url: string, cache: RequestCache = "no-cache") {
-    const response = await fetch(url, {
-      cache,
-    });
-    if (!response.ok)
-      return {
-        data: undefined,
-        status: response.status,
-        message: response.statusText,
-      };
+interface HttpRequestOptions {
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  body?: any;
+}
 
-    const data: T = await response.json();
-    return { data, status: response.status, message: "Get bem sucedido" };
+export class FetchHttpClient {
+  private baseUrl: string;
+  private defaultHeaders: Record<string, string>;
+
+  constructor(baseUrl = "", defaultHeaders = {}) {
+    this.baseUrl = baseUrl;
+    this.defaultHeaders = {
+      "Content-Type": "application/json",
+      ...defaultHeaders,
+    };
+  }
+
+  async get<T>(
+    url: string,
+    options: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    return this.request<T>("GET", url, options);
   }
 
   async post<T>(
     url: string,
-    formData: any,
-    headers?: any,
-    cache: RequestCache = "no-cache",
-  ) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        cache,
-        headers: {
-          "Content-Type": "application/json",
-          ...headers,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok)
-        return {
-          data: undefined,
-          status: response.status,
-          message: response.statusText,
-        };
-      const data: T = await response.json();
-
-      return { data, status: response.status, message: "Post bem sucedido" };
-    } catch (error) {
-      console.error(error);
-      return { data: undefined, status: 500, message: "Erro ao postar" };
-    }
-  }
-  async postFormData<T>(
-    url: string,
-    formData: FormData,
-    headers: Record<string, string> = {},
-    cache: RequestCache = "no-cache",
-  ): Promise<{ data: T | undefined; status: number; message: string }> {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        cache,
-        headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        return {
-          data: undefined,
-          status: response.status,
-          message: `Erro: ${response.statusText || "Request falhou"}. Detalhes: ${errorMessage}`,
-        };
-      }
-
-      const data: T = await response.json();
-      return { data, status: response.status, message: "Post bem-sucedido" };
-    } catch (error: any) {
-      console.error(error);
-      return {
-        data: undefined,
-        status: 500,
-        message: `Erro ao postar: ${error.message || "Erro desconhecido"}`,
-      };
-    }
+    body: any,
+    options: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    return this.request<T>("POST", url, { ...options, body });
   }
 
-  async patch<T>(
+  async put<T>(
     url: string,
-    formData: any,
-    headers?: any,
-    cache: RequestCache = "no-cache",
-  ) {
-    const response = await fetch(url, {
-      method: "PATCH",
-      cache,
+    body: any,
+    options: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    return this.request<T>("PUT", url, { ...options, body });
+  }
+
+  async delete<T>(
+    url: string,
+    options: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    return this.request<T>("DELETE", url, options);
+  }
+
+  private async request<T>(
+    method: string,
+    url: string,
+    { headers = {}, signal, body }: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    const requestUrl = `${this.baseUrl}${url}`;
+    const requestOptions: RequestInit = {
+      method,
       headers: {
-        "Content-Type": "application/json",
+        ...this.defaultHeaders,
         ...headers,
       },
-      body: JSON.stringify(formData),
-    });
-    if (!response.ok)
-      return {
-        data: undefined,
-        status: response.status,
-        message: response.statusText,
-      };
-    const data: T = await response.json();
-    return { data, status: response.status, message: "Patch bem sucedido" };
+      signal, // Passa o AbortSignal para o fetch
+    };
+
+    if (body) {
+      requestOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(requestUrl, requestOptions);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new AppError(
+        `Request failed with status ${response.status}: ${errorText}`,
+      );
+    }
+
+    // Para endpoints que não retornam JSON ou resposta vazia
+    if (
+      response.status === 204 ||
+      response.headers.get("content-length") === "0"
+    ) {
+      return { data: {} as T, status: response.status };
+    }
+
+    const data = await response.json();
+    return { data, status: response.status };
   }
 }

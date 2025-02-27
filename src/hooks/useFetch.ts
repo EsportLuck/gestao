@@ -1,13 +1,49 @@
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
+import { safeExecute } from "@/utils";
 import { useEffect, useState } from "react";
+import { AppError } from "@/domain/errors";
 
-export function useFetch<T = unknown>(url: string, att?: boolean) {
-  const [data, setData] = useState<T | null>(null);
+interface FetchState<T> {
+  data: T | null;
+  error: AppError | null;
+  isLoading: boolean;
+}
+
+export function useFetch<T = unknown>(url: string, refresh?: boolean) {
+  const [state, setState] = useState<FetchState<T>>({
+    data: null,
+    error: null,
+    isLoading: true,
+  });
 
   useEffect(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    let isMounted = true;
+
     const httpClient = new FetchHttpClient();
-    httpClient.get<T>(url).then((response) => setData(response.data || null));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [att]);
-  return { data };
+
+    async function fetchData() {
+      const [error, response] = await safeExecute(async () => {
+        return await httpClient.get<T>(url, { signal });
+      });
+
+      if (!isMounted) return;
+
+      setState({
+        data: response?.data || null,
+        error: error,
+        isLoading: false,
+      });
+    }
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
+  }, [url, refresh]);
+
+  return state;
 }

@@ -281,8 +281,6 @@ export class Entering {
           (item) => item.estabelecimento === estabelecimento,
         );
       if (tipo) filtros = filtros.filter((item) => item.tipo === tipo);
-      console.log(typeof empresaId);
-      console.log({ empresaId });
       if (empresaId)
         filtros = filtros.filter(
           (item) => item.empresaId === Number(empresaId),

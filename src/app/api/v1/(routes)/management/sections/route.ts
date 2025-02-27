@@ -1,4 +1,4 @@
-import { InternalServerError } from "@/errors";
+import { InternalServerError } from "@/domain/errors";
 import { prisma } from "@/services/prisma";
 import { NextResponse } from "next/server";
 

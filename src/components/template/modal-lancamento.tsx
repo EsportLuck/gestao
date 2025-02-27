@@ -98,9 +98,10 @@ export const ModalLancamento: FC = () => {
       throw new Error("Usuário não autenticado");
     }
     const formData = new FormData();
+
     formData.append("tipo", data.tipo);
     formData.append("forma_pagamento", data.forma_pagamento);
-    formData.append("estabelecimentoId", data.estabelecimento);
+    formData.append("estabelecimentoId", JSON.parse(data.estabelecimento).id);
     formData.append("comprovante", data.comprovante[0]);
     formData.append("valor", data.valor);
     formData.append("observacao_comprovante", data.observacao);

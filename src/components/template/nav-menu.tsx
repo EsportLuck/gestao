@@ -55,7 +55,7 @@ export const NavMenu = () => {
             "Cria lançamentos nos estabelecimentos para controle de caixa",
         },
         {
-          title: "Prestação",
+          title: "Conclusão de ciclo",
           href: "/dashboard/lancamento/prestacao",
           description: "Finalizar o ciclo de prestação dos estabelecimentos",
         },

@@ -1,3 +1,5 @@
+export * from "./safeExecute";
+
 export const numberFormater = (number: number) => {
   const formattedNumber = new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 2,

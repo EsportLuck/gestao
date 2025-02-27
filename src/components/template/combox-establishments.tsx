@@ -66,7 +66,7 @@ export function ComboboxEstablishment({
           aria-expanded={open}
           className="w-[240px] justify-between overflow-hidden text-muted-foreground"
         >
-          {value ? value : "Escolha um Estabelecimento"}
+          {value ? JSON.parse(value).name : "Escolha um Estabelecimento"}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -92,12 +92,12 @@ export function ComboboxEstablishment({
                 tabIndex={0}
                 key={item.name}
                 onClick={() => {
-                  setValue(item.name || "");
+                  setValue(JSON.stringify(item) || "");
                   setOpen(false);
                 }}
                 onKeyDownCapture={(e) => {
                   if (e.key === "Enter") {
-                    setValue(item.name || "");
+                    setValue(JSON.stringify(item) || "");
                     setOpen(false);
                   }
                 }}

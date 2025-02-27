@@ -28,7 +28,13 @@ import {
   TotalValueTable,
 } from "@/components/template";
 import { useFetch } from "@/hooks/useFetch";
-import { Estabelecimento, Localidade, Secao, Supervisor } from "@prisma/client";
+import {
+  Estabelecimento,
+  Localidade,
+  Rota,
+  Secao,
+  Supervisor,
+} from "@prisma/client";
 import { EstabelecimentosExtrato } from "@/components/template/estabelecimentos-report-table/columns";
 import { useSession } from "next-auth/react";
 
@@ -77,14 +83,14 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
   const [dataForForm, setDataForForm] = useState<{
     localidade: Partial<Localidade>[] | null;
     secao: Partial<Secao>[] | null;
-    rota: undefined | Array<any>;
+    rota: Partial<Rota>[] | null;
     supervisores: Partial<ISupervisorCompleto>[] | null;
     estabelecimento: Partial<Estabelecimento>[] | null;
     empresa: Array<"Arena" | "Sportnet" | "Bingo"> | null;
   }>({
     localidade: null,
     secao: null,
-    rota: undefined,
+    rota: null,
     supervisores: null,
     estabelecimento: null,
     empresa: ["Arena", "Sportnet", "Bingo"],
@@ -113,6 +119,7 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
   const estabelecimentos = useFetch<Partial<Estabelecimento>[]>(
     "/api/v1/management/establishments",
   ).data;
+  const rota = useFetch<Partial<Rota>[]>("/api/v1/management/routes").data;
 
   const localidades = useMemo(() => {
     const nomeSupervisor = infoUser?.user.username || "";
@@ -154,6 +161,7 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
       estabelecimento: estabelecimentos,
       localidade: localidades,
       secao: secao,
+      rota: rota,
       supervisores,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -559,8 +567,11 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                       <SelectGroup>
                         {dataForForm.rota ? (
                           dataForForm.rota.map((item, index) => (
-                            <SelectItem key={index} value={item.value}>
-                              {item.label}
+                            <SelectItem
+                              key={index}
+                              value={item.id?.toString() as string}
+                            >
+                              {item.name}
                             </SelectItem>
                           ))
                         ) : (
