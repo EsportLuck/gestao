@@ -1,10 +1,10 @@
 import { AppError } from "./AppError";
-import { HttpStatusCode } from "./HttpStatusCode";
+import { HttpStatusCode } from "../enum/HttpStatusCode";
 export * from "./AppError";
 export * from "./AuthenticationError";
 export * from "./BusinessError";
 export * from "./DatabaseError";
-export * from "./HttpStatusCode";
+
 export * from "./ValidationError";
 interface IBaseError {
   message: string;
