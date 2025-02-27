@@ -1,7 +1,4 @@
-import { Localidade, Secao } from "@prisma/client";
-import { TFile } from "@/app/api/services";
-import { FormatterFunctions } from "@/app/api/v1/utils/strategy";
-import { EstabelecimentoSelecionado } from "@/app/api/contracts";
+import { Localidade } from "@prisma/client";
 
 export interface ILocalidadeService {
   criar(name: string, empresa: string): Promise<void>;
@@ -9,8 +6,8 @@ export interface ILocalidadeService {
   encontrarPorId(localidadeId: number): Promise<Localidade | null>;
   encontrarPorNome(localidadeNome: string): Promise<Localidade | null>;
   encontrarTodasAsLocalidade(): Promise<
-    | { localidade: Partial<Localidade[]>; error: false }
-    | { localidade: []; error: true }
+    | { localidades: Partial<Localidade[]>; error: false }
+    | { localidades: []; error: true }
   >;
   encontrarTodasAsLocalidadesPorEmpresa(name: string): Promise<Localidade[]>;
 }

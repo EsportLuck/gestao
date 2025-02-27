@@ -31,8 +31,7 @@ import { useSession } from "next-auth/react";
 import { ImportandoContext } from "@/context/importacaoContext";
 import { reportOptions } from "./selectOptions";
 import { LoadingSpinnerModal } from "@/components/template";
-import { useFetch } from "@/hooks/useFetch";
-import { Empresa } from "@prisma/client";
+import { useEmpresas } from "@/hooks";
 
 const FormSchema = z.object({
   date: z.date({
@@ -65,6 +64,7 @@ export const FormImport: FC = () => {
     mode: "onChange",
   });
   const { isSubmitting } = form.formState;
+  const { empresas } = useEmpresas();
   const { importando, setImportando } = useContext(ImportandoContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dataForm, setDataForm] = useState<IDataForm>({
@@ -76,19 +76,6 @@ export const FormImport: FC = () => {
       site: "Escolha uma Empresa",
     },
   ]);
-
-  const obterEmpresas = useFetch<{ empresas: Partial<Empresa>[] }>(
-    "/api/v1/management/empresa/obterTodas",
-  );
-  const empresas = useMemo(() => {
-    if (obterEmpresas.data && obterEmpresas.data.empresas.length > 0) {
-      return obterEmpresas.data.empresas.map((empresa) => ({
-        ...empresa,
-        name: empresa.name,
-      }));
-    }
-    return [];
-  }, [obterEmpresas.data]);
 
   useEffect(() => {
     setSelectOptions(reportOptions(dataForm.empresa));

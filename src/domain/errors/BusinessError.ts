@@ -1,5 +1,5 @@
 import { AppError } from "./AppError";
-import { HttpStatusCode } from "./HttpStatusCode";
+import { HttpStatusCode } from "../enum/HttpStatusCode";
 
 export class BusinessError extends AppError {
   constructor(message: string) {

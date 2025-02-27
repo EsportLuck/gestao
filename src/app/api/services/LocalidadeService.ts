@@ -31,19 +31,19 @@ export class LocalidadeService implements ILocalidadeService {
     return this.localidadeRepository.encontrarPorNome(localidadeNome);
   }
   async encontrarTodasAsLocalidade(): Promise<
-    | { localidade: Partial<Localidade[]>; error: false }
-    | { localidade: []; error: true }
+    | { localidades: Partial<Localidade[]>; error: false }
+    | { localidades: []; error: true }
   > {
     try {
       const localidades =
         await this.localidadeRepository.encontrarTodasAsLocalidade();
       if (localidades.length > 0) {
-        return { localidade: localidades, error: false };
+        return { localidades, error: false };
       }
-      return { localidade: [], error: true };
+      return { localidades: [], error: true };
     } catch (error) {
       console.error("LocalidadeService encontrar todas as localidades");
-      return { localidade: [], error: true };
+      return { localidades: [], error: true };
     } finally {
       await prisma.$disconnect();
     }

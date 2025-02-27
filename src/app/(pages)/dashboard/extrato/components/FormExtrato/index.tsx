@@ -37,6 +37,14 @@ import {
 } from "@prisma/client";
 import { EstabelecimentosExtrato } from "@/components/template/estabelecimentos-report-table/columns";
 import { useSession } from "next-auth/react";
+import {
+  useEmpresas,
+  useLocalidades,
+  useSecoes,
+  useRota,
+  useSupervisores,
+  useEstabelecimentos,
+} from "@/hooks";
 
 interface ISupervisorCompleto extends Supervisor {
   Localidade?: {
@@ -69,6 +77,12 @@ type TFormSchema = z.infer<typeof formSchema>;
 
 export const FormExtrato: FC<TFormExtrato> = ({}) => {
   const { data: infoUser } = useSession();
+  const { empresas } = useEmpresas();
+  const { localidades } = useLocalidades();
+  const { secao } = useSecoes();
+  const { supervisores } = useSupervisores();
+  const { rotas } = useRota();
+  const { estabelecimentos } = useEstabelecimentos();
   const { handleSubmit, formState, control } = useForm<TFormSchema>({
     resolver: zodResolver(formSchema),
   });
@@ -80,21 +94,7 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
     date_inicial: undefined,
     date_final: undefined,
   });
-  const [dataForForm, setDataForForm] = useState<{
-    localidade: Partial<Localidade>[] | null;
-    secao: Partial<Secao>[] | null;
-    rota: Partial<Rota>[] | null;
-    supervisores: Partial<ISupervisorCompleto>[] | null;
-    estabelecimento: Partial<Estabelecimento>[] | null;
-    empresa: Array<"Arena" | "Sportnet" | "Bingo"> | null;
-  }>({
-    localidade: null,
-    secao: null,
-    rota: null,
-    supervisores: null,
-    estabelecimento: null,
-    empresa: ["Arena", "Sportnet", "Bingo"],
-  });
+
   const [dataExtrato, setDataExtrato] = useState<
     EstabelecimentosExtrato[] | []
   >([]);
@@ -105,67 +105,6 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
       }[]
     | undefined
   >(undefined);
-
-  const { data: localidadesData } = useFetch<Partial<Localidade>[]>(
-    "/api/v1/management/locations",
-  );
-  const { data: secaoData } = useFetch<Partial<Secao>[]>(
-    "/api/v1/management/sections",
-  );
-  const supervisores = useFetch<ISupervisorCompleto[]>(
-    "/api/v1/management/supervisores",
-  ).data;
-
-  const estabelecimentos = useFetch<Partial<Estabelecimento>[]>(
-    "/api/v1/management/establishments",
-  ).data;
-  const rota = useFetch<Partial<Rota>[]>("/api/v1/management/routes").data;
-
-  const localidades = useMemo(() => {
-    const nomeSupervisor = infoUser?.user.username || "";
-    const supervisor = supervisores?.find(
-      (item) => item.name === nomeSupervisor,
-    );
-
-    if (supervisor?.Localidade) {
-      return (
-        localidadesData?.filter((item) =>
-          supervisor.Localidade?.some(
-            (localidade) => localidade.name === item.name,
-          ),
-        ) || []
-      );
-    }
-    return localidadesData || [];
-  }, [infoUser?.user.username, supervisores, localidadesData]);
-
-  const secao = useMemo(() => {
-    const nomeSupervisor = infoUser?.user.username || "";
-    const supervisor = supervisores?.find(
-      (item) => item.name === nomeSupervisor,
-    );
-
-    if (supervisor?.Secao) {
-      return (
-        secaoData?.filter((item) =>
-          supervisor.Secao?.some((secao) => secao.name === item.name),
-        ) || []
-      );
-    }
-    return secaoData || [];
-  }, [infoUser?.user.username, supervisores, secaoData]);
-
-  useEffect(() => {
-    setDataForForm({
-      ...dataForForm,
-      estabelecimento: estabelecimentos,
-      localidade: localidades,
-      secao: secao,
-      rota: rota,
-      supervisores,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estabelecimentos]);
 
   async function handleSubmitExtrato(event: FieldValues) {
     try {
@@ -565,8 +504,8 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dataForForm.rota ? (
-                          dataForForm.rota.map((item, index) => (
+                        {rotas ? (
+                          rotas.map((item, index) => (
                             <SelectItem
                               key={index}
                               value={item.id?.toString() as string}
@@ -612,8 +551,8 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dataForForm.supervisores ? (
-                          dataForForm.supervisores.map((item, index) => (
+                        {supervisores && supervisores.length > 0 ? (
+                          supervisores.map((item, index) => (
                             <SelectItem
                               key={index}
                               value={item.name ? item.name : ""}
@@ -661,8 +600,8 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dataForForm.estabelecimento ? (
-                          dataForForm.estabelecimento.map((item, index) => (
+                        {estabelecimentos && estabelecimentos.length > 0 ? (
+                          estabelecimentos.map((item, index) => (
                             <SelectItem
                               key={index}
                               value={item.id?.toString() as string}
@@ -710,11 +649,20 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dataForForm.empresa?.map((item, _) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
+                        {empresas && empresas.length > 0 ? (
+                          empresas.map((item, index) => (
+                            <SelectItem
+                              key={index}
+                              value={item.id?.toString() as string}
+                            >
+                              {item.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="Carregando...">
+                            {"Carregando..."}
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
