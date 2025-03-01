@@ -1,3 +1,4 @@
+import { HttpStatusCode } from "@/domain/enum";
 import { InternalServerError } from "@/domain/errors";
 import { prisma } from "@/services/prisma";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,7 +43,7 @@ export async function GET(
         updatedAt: true,
       },
     });
-    const response = {
+    const estabelecimentoDetalhado = {
       name: data?.name,
       localidade: data?.localidade
         ? data.localidade.name
@@ -59,7 +60,10 @@ export async function GET(
       updatedAt: data?.updatedAt,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(
+      { estabelecimentoDetalhado },
+      { status: HttpStatusCode.OK },
+    );
   } catch (error: any) {
     const internalServerError = new InternalServerError(error);
     return NextResponse.json(

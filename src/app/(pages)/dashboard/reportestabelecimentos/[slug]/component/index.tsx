@@ -21,28 +21,39 @@ import {
   UserRound,
   Blinds,
 } from "lucide-react";
-import { DropDownMenuItens, TMessage } from "./drop-down-menu-itens";
-import { useState } from "react";
+import {
+  DropdownMenuItemData,
+  DropDownMenuItens,
+  TMessage,
+} from "./drop-down-menu-itens";
+import { useEffect, useMemo, useState } from "react";
+interface MenuOption {
+  icon: React.ReactNode;
+  title: string;
+  items: Array<{ id?: number | string; name?: string }> | undefined;
+  message: string;
+  modal: boolean;
+}
 interface IAction {
   localidade?: Array<{
-    id: string;
-    name: string;
+    id?: number;
+    name?: string;
   }>;
   secao?: Array<{
-    id: string;
-    name: string;
+    id?: number;
+    name?: string;
   }>;
   rota?: Array<{
-    id: string;
-    name: string;
+    id?: number;
+    name?: string;
   }>;
   filiais?: Array<{
-    id: string;
-    name: string;
+    id?: number;
+    name?: string;
   }>;
   supervisor?: Array<{
-    id: string;
-    name: string;
+    id?: number;
+    name?: string;
   }>;
 }
 export const Action: React.FC<IAction> = ({
@@ -52,53 +63,58 @@ export const Action: React.FC<IAction> = ({
   filiais,
   supervisor,
 }) => {
-  const options = [
-    {
-      icon: <CircuitBoard className="mr-2 h-4 w-4" />,
-      title: "Definir Localidade",
-      items: localidade,
-      message: "localidade",
-      modal: false,
-    },
-    {
-      icon: <GitPullRequestDraft className="mr-2 h-4 w-4" />,
-      title: "Definir Seção",
-      items: secao,
-      message: "seção",
-      modal: false,
-    },
-    {
-      icon: <GitPullRequestCreateArrow className="mr-2 h-4 w-4" />,
-      title: "Definir Rota",
-      items: rota,
-      message: "rota",
-      modal: false,
-    },
-    {
-      icon: <Cable className="mr-2 h-4 w-4" />,
-      title: "Definir Filial",
-      items: filiais,
-      message: "filiais",
-      modal: false,
-    },
-    {
-      icon: <UserRound className="mr-2 h-4 w-4" />,
-      title: "Definir Supervisor",
-      items: supervisor,
-      message: "supervisor",
-      modal: false,
-    },
-    {
-      icon: <Blinds className="mr-2 h-4 w-4" />,
-      title: "Definir Comissão Retida",
-      items: [{ id: "1", name: "tornar comissão retida" }],
-      message: "opção",
-      modal: false,
-    },
-  ];
+  const [stateOptions, setStateOptions] = useState<MenuOption[]>([]);
+  const options = useMemo(
+    () => [
+      {
+        icon: <CircuitBoard className="mr-2 h-4 w-4" />,
+        title: "Definir Localidade",
+        items: localidade,
+        message: "localidade",
+        modal: false,
+      },
+      {
+        icon: <GitPullRequestDraft className="mr-2 h-4 w-4" />,
+        title: "Definir Seção",
+        items: secao,
+        message: "seção",
+        modal: false,
+      },
+      {
+        icon: <GitPullRequestCreateArrow className="mr-2 h-4 w-4" />,
+        title: "Definir Rota",
+        items: rota,
+        message: "rota",
+        modal: false,
+      },
+      {
+        icon: <Cable className="mr-2 h-4 w-4" />,
+        title: "Definir Filial",
+        items: filiais,
+        message: "filiais",
+        modal: false,
+      },
+      {
+        icon: <UserRound className="mr-2 h-4 w-4" />,
+        title: "Definir Supervisor",
+        items: supervisor,
+        message: "supervisor",
+        modal: false,
+      },
+      {
+        icon: <Blinds className="mr-2 h-4 w-4" />,
+        title: "Definir Comissão Retida",
+        items: [{ id: "1", name: "tornar comissão retida" }],
+        message: "opção",
+        modal: false,
+      },
+    ],
+    [filiais, localidade, rota, secao, supervisor],
+  );
 
-  const [stateOptions] = useState(options);
-
+  useEffect(() => {
+    setStateOptions(options);
+  }, [options]);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -121,7 +137,7 @@ export const Action: React.FC<IAction> = ({
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
                     <DropDownMenuItens
-                      items={option.items}
+                      items={option.items as DropdownMenuItemData[]}
                       emptyMessage={option.message as TMessage}
                     />
                   </DropdownMenuSubContent>

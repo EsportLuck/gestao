@@ -3,9 +3,9 @@ import { DropdownMenuItem } from "@/components/ui";
 
 export type TMessage = "localidade" | "rota" | "seção" | "filiais";
 
-interface DropdownMenuItemData {
-  id: string;
-  name: string;
+export interface DropdownMenuItemData {
+  id?: number;
+  name?: string;
 }
 
 interface IDropDownMenuItens {

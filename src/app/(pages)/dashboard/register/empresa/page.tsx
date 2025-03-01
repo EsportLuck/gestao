@@ -10,6 +10,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
+import { isAppError } from "@/domain/errors";
 
 const formSchema = z.object({
   nome: z
@@ -23,7 +24,7 @@ const formSchema = z.object({
 
 type TFormSchema = z.infer<typeof formSchema>;
 
-export default function Page({ params }: { params: { slug: string } }) {
+export default function Page() {
   const { toast } = useToast();
   const { handleSubmit, formState, control } = useForm<TFormSchema>({
     resolver: zodResolver(formSchema),
@@ -33,22 +34,35 @@ export default function Page({ params }: { params: { slug: string } }) {
     try {
       const fetch = new FetchHttpClient();
 
-      const sucess: { message: string; status: number } = await fetch.post(
-        `/api/v1/management/empresa/criar`,
-        {
-          nome: data.nome,
-        },
-      );
-      if (sucess.status !== 200) throw new Error(sucess.message);
+      const { data: fechData } = await fetch.post<{
+        status: number;
+        message?: string;
+      }>(`/api/v1/management/empresa/criar`, {
+        nome: data.nome,
+      });
+      if (fechData.status !== 200) throw new Error(fechData.message);
       toast({
         title: `Empresa criada com sucesso!`,
         variant: "success",
       });
     } catch (error) {
-      toast({
-        title: `Algo não está certo, tente novamente.`,
-        variant: "destructive",
-      });
+      if (isAppError(error)) {
+        toast({
+          title: error.message,
+          variant: "destructive",
+        });
+      }
+      if (error instanceof Error) {
+        toast({
+          title: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: `Error interno do servidor`,
+          variant: "destructive",
+        });
+      }
     }
   };
   return (

@@ -15,8 +15,8 @@ import { useParams, useRouter } from "next/navigation";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 
 interface SelectOption {
-  id: string;
-  name: string;
+  id?: number;
+  name?: string;
 }
 
 interface FilterableSelectProps {
@@ -139,7 +139,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
               onClick={() => {
                 setAtributo({
                   id: Number(option.id),
-                  name: option.name,
+                  name: option.name || "",
                 });
                 handleModalMenu();
               }}
