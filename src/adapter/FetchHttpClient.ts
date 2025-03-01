@@ -45,6 +45,13 @@ export class FetchHttpClient {
   ): Promise<HttpResponse<T>> {
     return this.request<T>("PUT", url, { ...options, body });
   }
+  async patch<T>(
+    url: string,
+    body: any,
+    options: HttpRequestOptions = {},
+  ): Promise<HttpResponse<T>> {
+    return this.request<T>("PATCH", url, { ...options, body });
+  }
 
   async delete<T>(
     url: string,
