@@ -8,3 +8,4 @@ export * from "./useSupervisores";
 export * from "./useRota";
 export * from "./useEstabelecimentos";
 export * from "./useEstabelecimentoDetalhado";
+export * from "./useMatrizes";

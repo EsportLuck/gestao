@@ -16,8 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useMemo } from "react";
-import { useFetch } from "@/hooks/useFetch";
-import { Empresa, Localidade, Secao } from "@prisma/client";
+import { Empresa } from "@prisma/client";
+import { useEmpresas, useLocalidades, useSecoes } from "@/hooks";
 
 const formSchema = z.object({
   name: z
@@ -47,26 +47,22 @@ export default function Page() {
   const { handleSubmit, formState, control } = useForm<TFormSchema>({
     resolver: zodResolver(formSchema),
   });
-  const dados = useFetch<{ empresas: Partial<Empresa>[] }>(
-    "/api/v1/management/empresa/obterTodas",
-  );
-  const dadosLocalidades = useFetch<Partial<Localidade>[]>(
-    "/api/v1/management/locations",
-  );
-  const dadosSecoes = useFetch<Partial<Secao>[]>("/api/v1/management/sections");
+  const { empresas } = useEmpresas();
+  const { localidades } = useLocalidades();
+  const { secao } = useSecoes();
   const selectOptions = useMemo(
     () => ({
-      empresas: dados.data?.empresas,
-      localidades: dadosLocalidades.data,
-      secoes: dadosSecoes.data,
+      empresas,
+      localidades,
+      secoes: secao,
     }),
-    [dados, dadosLocalidades, dadosSecoes],
+    [empresas, localidades, secao],
   );
 
   const onSubmit = async (data: FieldValues) => {
     try {
       const fetch = new FetchHttpClient();
-      const response = await fetch.post(
+      const response = await fetch.post<{ success: boolean; message: string }>(
         `/api/v1/management/establishments/create`,
         {
           name: data.name,
@@ -76,6 +72,9 @@ export default function Page() {
         },
       );
 
+      if (!response.data.success) {
+        throw new Error(response.data.message);
+      }
       toast({
         title: ` Estabeleciemnto criada com sucesso!`,
         variant: "success",

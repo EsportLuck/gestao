@@ -7,7 +7,7 @@ import {
   useSecoes,
   useRota,
   useSupervisores,
-  useEstabelecimentos,
+  useMatrizes,
   useEstabelecimentoDetalhado,
 } from "@/hooks";
 
@@ -16,7 +16,7 @@ export default function Page({ params }: { params: { slug: string } }) {
   const { secao } = useSecoes();
   const { rotas } = useRota();
   const { supervisores } = useSupervisores();
-  const { estabelecimentos } = useEstabelecimentos();
+  const { matrizes } = useMatrizes();
   const { estabelecimentoDetalhado } = useEstabelecimentoDetalhado(params.slug);
 
   const establishmentDetails = [
@@ -93,13 +93,13 @@ export default function Page({ params }: { params: { slug: string } }) {
         )}
 
         <div tabIndex={0}>
-          {supervisores && rotas && secao && estabelecimentos && localidades ? (
+          {supervisores && rotas && secao && matrizes && localidades ? (
             <ModalProvider>
               <Action
                 localidade={localidades}
                 rota={rotas}
                 secao={secao}
-                filiais={estabelecimentos}
+                filiais={matrizes}
                 supervisor={supervisores}
               />
             </ModalProvider>

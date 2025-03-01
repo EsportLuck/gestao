@@ -1,3 +1,4 @@
+import { HttpStatusCode } from "@/domain/enum";
 import { prisma } from "@/services/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -43,9 +44,19 @@ export async function POST(req: NextRequest) {
         };
       }
     });
-    if (!success) return NextResponse.json({ message }, { status: 500 });
-    return NextResponse.json({ message }, { status: 201 });
+    if (!success)
+      return NextResponse.json(
+        { success, message },
+        { status: HttpStatusCode.INTERNAL_SERVER_ERROR },
+      );
+    return NextResponse.json(
+      { success, message },
+      { status: HttpStatusCode.CREATED },
+    );
   } catch (error) {
-    return NextResponse.json({ message: `${error}` }, { status: 500 });
+    return NextResponse.json(
+      { message: `${error}` },
+      { status: HttpStatusCode.INTERNAL_SERVER_ERROR },
+    );
   }
 }
