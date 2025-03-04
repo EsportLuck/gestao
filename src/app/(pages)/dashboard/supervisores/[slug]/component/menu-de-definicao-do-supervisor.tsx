@@ -16,8 +16,8 @@ import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useRouter } from "next/navigation";
 
 interface SelectOption {
-  id: string;
-  name: string;
+  id?: number;
+  name?: string;
 }
 
 interface IMenuDefinicaoSupervisor {
@@ -104,7 +104,7 @@ export const MenuDefinicaoSupervisor: React.FC<IMenuDefinicaoSupervisor> = ({
               onClick={() => {
                 setAtributo({
                   id: Number(option.id),
-                  name: option.name,
+                  name: option.name || "",
                 });
                 handleModalMenu();
               }}

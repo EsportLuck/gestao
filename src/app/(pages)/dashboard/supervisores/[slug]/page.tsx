@@ -4,8 +4,9 @@ import { Action } from "./component";
 import { Description } from "./component/description";
 import { TituloSupervisor } from "./component/titulo-supervisor";
 import { useFetch } from "@/hooks/useFetch";
-import { Localidade, Rota, Secao, Supervisor } from "@prisma/client";
+import { Supervisor } from "@prisma/client";
 import { useMemo } from "react";
+import { useLocalidades, useRota, useSecoes } from "@/hooks";
 
 interface SupervisorDetalhado extends Supervisor {
   localidade: string;
@@ -21,34 +22,15 @@ export default function DetalhesDoSupervisor({
   const fetchSupervisor = useFetch<SupervisorDetalhado>(
     `/api/v1/management/supervisores/detalhar?id=${params.slug}`,
   );
-  const fetchLocalidades = useFetch<Partial<Localidade[]>>(
-    `/api/v1/management/locations`,
-  );
-  const fetchSecao = useFetch<Partial<Secao[]>>(`/api/v1/management/sections`);
-  const fetchRotas = useFetch<Partial<Rota[]>>(`/api/v1/management/routes`);
+  const { localidades } = useLocalidades();
+  const { secao } = useSecoes();
+  const { rotas } = useRota();
+
   const supervisor = useMemo(() => {
     if (!fetchSupervisor.data) return undefined;
     return fetchSupervisor.data;
   }, [fetchSupervisor.data]);
 
-  const localidades = useMemo(() => {
-    if (!fetchLocalidades.data) return undefined;
-    return fetchLocalidades.data.map((item) => {
-      return { id: item?.id.toString() as string, name: item?.name as string };
-    });
-  }, [fetchLocalidades.data]);
-  const secao = useMemo(() => {
-    if (!fetchSecao.data) return undefined;
-    return fetchSecao.data.map((item) => {
-      return { id: item?.id.toString() as string, name: item?.name as string };
-    });
-  }, [fetchSecao.data]);
-  const rotas = useMemo(() => {
-    if (!fetchRotas.data) return undefined;
-    return fetchRotas.data.map((item) => {
-      return { id: item?.id.toString() as string, name: item?.name as string };
-    });
-  }, [fetchRotas.data]);
   const definicoesDoSupervisor = [
     {
       title: "Criado",

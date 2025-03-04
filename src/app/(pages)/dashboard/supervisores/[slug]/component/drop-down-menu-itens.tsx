@@ -4,8 +4,8 @@ import { MenuDefinicaoSupervisor } from "./menu-de-definicao-do-supervisor";
 export type TMessage = "localidade" | "seção";
 
 interface DropdownMenuItemData {
-  id: string;
-  name: string;
+  id?: number;
+  name?: string;
 }
 
 interface IDropDownMenuItens {

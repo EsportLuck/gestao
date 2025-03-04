@@ -20,19 +20,11 @@ import {
 } from "lucide-react";
 import { DropDownMenuItens, TMessage } from "./drop-down-menu-itens";
 import { useState } from "react";
+import { Localidade, Secao, Rota } from "@prisma/client";
 interface IAction {
-  localidade?: Array<{
-    id: string;
-    name: string;
-  }>;
-  secao?: Array<{
-    id: string;
-    name: string;
-  }>;
-  rota?: Array<{
-    id: string;
-    name: string;
-  }>;
+  localidade?: Array<Partial<Localidade>>;
+  secao?: Array<Partial<Secao>>;
+  rota?: Array<Partial<Rota>>;
 }
 export const Action: React.FC<IAction> = ({ localidade, secao, rota }) => {
   const options = [
