@@ -1,21 +1,25 @@
 "use client";
-import { Supervisor } from "@prisma/client";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
-import { useMemo } from "react";
 
-import { useFetch } from "@/hooks/useFetch";
+import { useSupervisores } from "@/hooks";
 
 export function ReportTableSupervisores() {
-  const data = useFetch<Supervisor[]>("/api/v1/management/supervisores");
+  const { supervisores, isLoading, error } = useSupervisores();
+  if (isLoading) {
+    return <div className="container mx-auto mt-10 p-0">Carregando...</div>;
+  }
 
-  const supervisores = useMemo<Supervisor[]>(
-    () => data.data ?? [],
-    [data.data],
-  );
+  if (error) {
+    return (
+      <div className="container mx-auto mt-10 p-0">
+        <div className="text-red-500">Falha ao carregar supervisores</div>
+      </div>
+    );
+  }
   return (
     <div className="container mx-auto mt-10 p-0">
-      <DataTable columns={columns} data={supervisores} />
+      <DataTable columns={columns as any} data={supervisores || []} />
     </div>
   );
 }
