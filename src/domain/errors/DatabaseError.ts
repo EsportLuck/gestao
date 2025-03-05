@@ -21,3 +21,10 @@ export class DuplicateRecordError extends AppError {
     this.name = "DuplicateRecordError";
   }
 }
+
+export class MissingDataError extends AppError {
+  constructor(field: string) {
+    super(`Dados obrigatórios faltando: ${field}`, HttpStatusCode.BAD_REQUEST);
+    this.name = "MissingDataError";
+  }
+}
