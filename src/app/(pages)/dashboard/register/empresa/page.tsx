@@ -10,7 +10,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
-import { isAppError } from "@/domain/errors";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({
   nome: z
@@ -46,23 +46,8 @@ export default function Page() {
         variant: "success",
       });
     } catch (error) {
-      if (isAppError(error)) {
-        toast({
-          title: error.message,
-          variant: "destructive",
-        });
-      }
-      if (error instanceof Error) {
-        toast({
-          title: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: `Error interno do servidor`,
-          variant: "destructive",
-        });
-      }
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   };
   return (

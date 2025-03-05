@@ -6,6 +6,7 @@ import { SupervisorDetailProps } from "@/types/supervisor";
 import { supervisorService } from "@/domain/services/supervisorService";
 import { useState } from "react";
 import { ConfirmationDialog } from "@/components/template";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 export const Description: React.FC<SupervisorDetailProps> = ({
   title,
@@ -32,11 +33,8 @@ export const Description: React.FC<SupervisorDetailProps> = ({
       });
       router.refresh();
     } catch (error) {
-      console.error(`Error removing ${title}:`, error);
-      toast({
-        description: "Algo deu errado",
-        variant: "destructive",
-      });
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   };
 

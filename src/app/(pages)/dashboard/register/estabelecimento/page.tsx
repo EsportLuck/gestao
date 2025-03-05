@@ -18,6 +18,7 @@ import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useMemo } from "react";
 import { Empresa } from "@prisma/client";
 import { useEmpresas, useLocalidades, useSecoes } from "@/hooks";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({
   name: z
@@ -80,11 +81,8 @@ export default function Page() {
         variant: "success",
       });
     } catch (error) {
-      console.error(error);
-      toast({
-        title: `Algo não está certo, tente novamente.`,
-        variant: "destructive",
-      });
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   };
   return (

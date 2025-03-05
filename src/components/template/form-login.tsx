@@ -1,11 +1,12 @@
 "use client";
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Input, Button, useToast, ErrorMessageInput } from "@/components/ui";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { HttpStatusCode } from "@/domain/enum";
 
 const SignInSchema = z.object({
   email: z.string().email(),
@@ -15,35 +16,55 @@ const SignInSchema = z.object({
 type TSignInSchema = z.infer<typeof SignInSchema>;
 
 export const FormLogin: FC = () => {
-  const { register, handleSubmit, formState, reset } = useForm<TSignInSchema>({
+  const { register, handleSubmit, formState } = useForm<TSignInSchema>({
     resolver: zodResolver(SignInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
   const { toast } = useToast();
   const { isSubmitting, errors } = formState;
   const router = useRouter();
-  async function getData(event: FieldValues) {
-    const login = await signIn("credentials", { ...event, redirect: false });
-    reset();
+  const getData = useCallback(
+    async (event: FieldValues) => {
+      try {
+        const login = await signIn("credentials", {
+          ...event,
+          redirect: false,
+        });
 
-    if (login?.status === 401) {
-      toast({
-        description: "Falha no login",
-        variant: "destructive",
-      });
-    }
+        if (login?.status === HttpStatusCode.UNAUTHORIZED) {
+          toast({
+            description: "Falha no login",
+            variant: "destructive",
+          });
+          return;
+        }
 
-    if (login?.status === 200) {
-      router.push("/dashboard");
-      toast({
-        description: "Login efetuado com sucesso",
-        variant: "success",
-      });
-    }
-  }
+        if (login?.status === HttpStatusCode.OK) {
+          router.prefetch("/dashboard");
+
+          toast({
+            description: "Login efetuado com sucesso",
+            variant: "success",
+          });
+          router.replace("/dashboard");
+          return;
+        }
+      } catch (error) {
+        toast({
+          description: "Erro ao realizar login",
+          variant: "destructive",
+        });
+      }
+    },
+    [router, toast],
+  );
 
   return (
     <form
-      className="grid gap-8 bg-background p-8 rounded-md"
+      className="grid gap-8  p-8 rounded-md border"
       method="post"
       onSubmit={handleSubmit(getData)}
     >

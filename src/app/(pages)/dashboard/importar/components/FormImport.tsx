@@ -32,6 +32,7 @@ import { ImportandoContext } from "@/context/importacaoContext";
 import { reportOptions } from "./selectOptions";
 import { LoadingSpinnerModal } from "@/components/template";
 import { useEmpresas } from "@/hooks";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const FormSchema = z.object({
   date: z.date({
@@ -114,27 +115,8 @@ export const FormImport: FC = () => {
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          description: (
-            <pre className="rounded-md p-4">
-              <code className="text-slate-200 text-wrap">{error.message}</code>
-            </pre>
-          ),
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          description: (
-            <pre className="rounded-md p-4">
-              <code className="text-slate-200 text-wrap">
-                Verifique se você preencheu as informações de maneira correta
-              </code>
-            </pre>
-          ),
-          variant: "destructive",
-        });
-      }
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     } finally {
       setImportando(!importando);
     }

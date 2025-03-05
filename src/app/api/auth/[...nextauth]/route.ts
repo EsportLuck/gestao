@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/services/prisma";
 import bcrypt from "bcrypt";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const authOptions: AuthOptions = {
   providers: [
@@ -33,7 +34,9 @@ const authOptions: AuthOptions = {
           if (!passwordMatch) throw new Error("Invalid password");
           return user as unknown as User;
         } catch (error) {
-          console.error("Credentials error", error);
+          const errorAdapter = new ErrorHandlerAdapter();
+          errorAdapter.handle(error);
+
           return null;
         } finally {
           await prisma.$disconnect();

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import { FC } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
@@ -27,14 +27,7 @@ import {
   DataTableEstabelecimentos,
   TotalValueTable,
 } from "@/components/template";
-import { useFetch } from "@/hooks/useFetch";
-import {
-  Estabelecimento,
-  Localidade,
-  Rota,
-  Secao,
-  Supervisor,
-} from "@prisma/client";
+import { Supervisor } from "@prisma/client";
 import { EstabelecimentosExtrato } from "@/components/template/estabelecimentos-report-table/columns";
 import { useSession } from "next-auth/react";
 import {
@@ -45,17 +38,7 @@ import {
   useSupervisores,
   useEstabelecimentos,
 } from "@/hooks";
-
-interface ISupervisorCompleto extends Supervisor {
-  Localidade?: {
-    id: string;
-    name: string;
-  }[];
-  Secao?: {
-    id: string;
-    name: string;
-  }[];
-}
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({
   dataInicial: z.date({
@@ -242,7 +225,8 @@ export const FormExtrato: FC<TFormExtrato> = ({}) => {
       setTotalValue(totalValue);
       setDataExtrato(data.extrato);
     } catch (error) {
-      console.error("handleSubmitExtrato", error);
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   }
 

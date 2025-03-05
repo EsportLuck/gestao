@@ -1,6 +1,7 @@
 "use client";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { reducer, initialState, ACTION_TYPES } from "@/hooks/useEditSupervisor";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 import { Pen, Save } from "lucide-react";
 import React, { useReducer } from "react";
 
@@ -28,7 +29,8 @@ export const TituloSupervisor: React.FC<TituloSupervisorProps> = ({
 
       dispatch({ type: ACTION_TYPES.SET_SAVE, payload: state.editableName });
     } catch (error) {
-      console.error("Erro na atualização Nome do Supervisor:", error);
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   };
 

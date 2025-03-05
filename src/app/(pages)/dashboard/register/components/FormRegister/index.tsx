@@ -18,6 +18,7 @@ import {
   Button,
 } from "@/components/ui";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({
   username: z
@@ -93,14 +94,8 @@ export default function FormRegister() {
       });
     } catch (error) {
       resetForm();
-      toast({
-        description: (
-          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-            <p className="text-white-500">Algo deu errado</p>
-          </pre>
-        ),
-        variant: "destructive",
-      });
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   }
 

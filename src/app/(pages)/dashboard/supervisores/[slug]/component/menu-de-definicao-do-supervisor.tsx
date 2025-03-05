@@ -14,6 +14,7 @@ import {
 import { useParams } from "next/navigation";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useRouter } from "next/navigation";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 interface SelectOption {
   id?: number;
@@ -70,13 +71,13 @@ export const MenuDefinicaoSupervisor: React.FC<IMenuDefinicaoSupervisor> = ({
     const fecth = new FetchHttpClient();
     try {
       setIsSubmitting(true);
-
       await fecth.patch(
         `/api/v1/management/supervisores/update`,
         strategy[value],
       );
     } catch (error) {
-      console.error("filtarable-select updatedAttribute", error);
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     } finally {
       setIsSubmitting(false);
       router.refresh();

@@ -32,6 +32,7 @@ import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { LancamentosTable } from "@/components/template/table-lancamentos/columns";
 import { useFetch } from "@/hooks/useFetch";
 import { Empresa, Estabelecimento } from "@prisma/client";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const FormSchema = z.object({
   data_inicial: z
@@ -116,12 +117,8 @@ export const FormLancamento = () => {
         variant: "success",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Algo deu errado",
-        variant: "destructive",
-      });
-      console.error("formSubmit", error);
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   }
   const { isSubmitting, errors } = formState;

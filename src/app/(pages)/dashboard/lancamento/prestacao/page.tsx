@@ -36,6 +36,7 @@ import { FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "@/utils";
 import { formatarData } from "@/utils/formatarData";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const FormSchemaPrestacao = z.object({
   estabelecimento: z.string({
@@ -125,7 +126,10 @@ export default function Prestacao() {
           ...prev,
           ciclosDePrestacao: response.data,
         }));
-      } catch (error) {}
+      } catch (error) {
+        const errorAdapter = new ErrorHandlerAdapter();
+        return errorAdapter.handle(error);
+      }
     };
 
     fetchData();
@@ -171,26 +175,8 @@ export default function Prestacao() {
         variant: "destructive",
       });
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          description: (
-            <pre className="rounded-md p-4">
-              <code className="text-slate-200 text-wrap">{error.message}</code>
-            </pre>
-          ),
-          variant: "destructive",
-        });
-      }
-      toast({
-        description: (
-          <pre className="rounded-md p-4">
-            <code className="text-slate-200 text-wrap">
-              Verifique se você preencheu as informações de maneira correta
-            </code>
-          </pre>
-        ),
-        variant: "destructive",
-      });
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     } finally {
       form.resetField("ciclosDePrestacao");
       form.resetField("file");

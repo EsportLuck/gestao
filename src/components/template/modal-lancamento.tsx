@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo, useRef } from "react";
+import { FC, useRef } from "react";
 import { useForm } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
@@ -37,13 +37,14 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "lucide-react";
 import { TEstabelecimento } from "@/types/estabelecimento";
-import axios from "axios";
 import { format } from "@/utils";
 import { useSession } from "next-auth/react";
 import { ComboboxEstablishment } from "@/components/template";
 import { useRouter } from "next/navigation";
-import { useFetch } from "@/hooks/useFetch";
-import { Estabelecimento, Prisma } from "@prisma/client";
+import { useMatrizes } from "@/hooks";
+import { HttpStatusCode } from "@/domain/enum";
+import { FetchHttpClient } from "@/adapter/FetchHttpClient";
+import { ErrorHandlerAdapter } from "@/presentation/adapters/ErrorHandlerAdapter";
 
 const FormSchema = z.object({
   data_lancamento: z.date({
@@ -68,16 +69,8 @@ const FormSchema = z.object({
 });
 type TFormSchema = z.infer<typeof FormSchema>;
 export const ModalLancamento: FC = () => {
-  const obterEstabelecimentos = useFetch<Partial<Estabelecimento>[]>(
-    "/api/v1/management/companies",
-  ).data;
+  const { matrizes } = useMatrizes();
 
-  const estabelecimentos = useMemo(() => {
-    if (obterEstabelecimentos && obterEstabelecimentos.length > 0) {
-      return obterEstabelecimentos;
-    }
-    return [];
-  }, [obterEstabelecimentos]);
   const formRef = useRef<HTMLFormElement | null>(null);
   const closedRef = useRef<HTMLButtonElement | null>(null);
 
@@ -86,6 +79,15 @@ export const ModalLancamento: FC = () => {
   const form = useForm<TFormSchema>({
     resolver: zodResolver(FormSchema),
     mode: "onChange",
+    defaultValues: {
+      data_lancamento: new Date(),
+      tipo: "",
+      forma_pagamento: "",
+      estabelecimento: "",
+      comprovante: "",
+      valor: "",
+      observacao: "",
+    },
   });
   const { isSubmitting } = form.formState;
 
@@ -105,22 +107,24 @@ export const ModalLancamento: FC = () => {
     formData.append("comprovante", data.comprovante[0]);
     formData.append("valor", data.valor);
     formData.append("observacao_comprovante", data.observacao);
-    formData.append("user", session?.user.username as string);
+    formData.append("user", user);
     formData.append("date_reference", data.data_lancamento.toString());
     try {
-      const response = await axios.post("/api/v1/entering/create", formData, {
+      const fetch = new FetchHttpClient();
+      const { data } = await fetch.post<{
+        message: string;
+        status: number;
+      }>("/api/v1/entering/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      if (response.data.message === "Usuário não permitido") {
+      if (data.message === "Usuário não permitido") {
         toast({
           title: "Erro ao criar lançamento Usuário não permitido",
           variant: "destructive",
           description: (
-            <code className="text-white text-wrap">
-              {response.data.message}
-            </code>
+            <code className="text-white text-wrap">{data.message}</code>
           ),
         });
         router.push("/");
@@ -128,50 +132,22 @@ export const ModalLancamento: FC = () => {
         return null;
       }
 
-      if (response.data.status !== 201) {
+      if (data.status !== HttpStatusCode.CREATED) {
         return toast({
           title: "Erro ao criar lançamento",
           variant: "destructive",
           description: (
-            <code className="text-white text-wrap">
-              {response.data.message}
-            </code>
+            <code className="text-white text-wrap">{data.message}</code>
           ),
         });
       }
       toast({
-        description: (
-          <code className="text-white">{response.data.message}</code>
-        ),
+        description: <code className="text-white">{data.message}</code>,
         variant: "success",
       });
     } catch (error) {
-      if (
-        error instanceof Error ||
-        error instanceof TypeError ||
-        error instanceof SyntaxError ||
-        error instanceof Prisma.PrismaClientKnownRequestError ||
-        error instanceof Prisma.PrismaClientUnknownRequestError ||
-        error instanceof Prisma.PrismaClientRustPanicError ||
-        error instanceof Prisma.PrismaClientInitializationError ||
-        error instanceof Prisma.PrismaClientValidationError
-      ) {
-        toast({
-          description: (
-            <pre className="rounded-md bg-red-600 p-4">{error.message}</pre>
-          ),
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          description: (
-            <pre className="rounded-md bg-red-600 p-4">
-              <code className="text-white text-wrap">Erro desconhecido</code>
-            </pre>
-          ),
-          variant: "destructive",
-        });
-      }
+      const errorAdapter = new ErrorHandlerAdapter();
+      return errorAdapter.handle(error);
     }
   }
   return (
@@ -299,7 +275,7 @@ export const ModalLancamento: FC = () => {
                 name="estabelecimento"
                 render={({ field }) => (
                   <ComboboxEstablishment
-                    establishments={estabelecimentos as TEstabelecimento[]}
+                    establishments={matrizes as TEstabelecimento[]}
                     onValueChange={(value) => {
                       field.onChange(value);
                     }}

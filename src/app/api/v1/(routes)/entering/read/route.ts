@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Entering } from "@/app/api/models/entering.model";
+import { MissingDataError } from "@/domain/errors";
+import { HttpStatusCode } from "@/domain/enum";
 
 export const revalidate = 0;
 
@@ -8,14 +10,8 @@ export async function POST(
   _res: NextResponse,
 ): Promise<void | Response> {
   const data = await req.json();
-  if (
-    data.data_final === undefined &&
-    data.data_inicial === undefined &&
-    data.estabelecimento === undefined &&
-    data.forma_pagamento === undefined &&
-    data.tipo === undefined
-  ) {
-    return NextResponse.json({ error: "Data não informada" }, { status: 400 });
+  if (data.data_final === undefined && data.data_inicial === undefined) {
+    throw new MissingDataError("data_final ou data_inicial");
   }
   const lancamento = new Entering(data);
 
@@ -27,7 +23,7 @@ export async function POST(
     if (data.data_final) {
       read = await lancamento.readWithReleaseDateOf();
     }
-    return NextResponse.json(read, { status: 200 });
+    return NextResponse.json(read, { status: HttpStatusCode.OK });
   } catch (error) {
     console.error("entering read post", error);
     return NextResponse.json({ error });
