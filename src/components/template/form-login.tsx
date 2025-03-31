@@ -1,5 +1,5 @@
 "use client";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -7,56 +7,68 @@ import { Input, Button, useToast, ErrorMessageInput } from "@/components/ui";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HttpStatusCode } from "@/domain/enum";
+import { ErrorHandlerAdapter } from "@/presentation/adapters";
+import { AuthenticationError } from "@/domain/errors";
 
 const SignInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(4, { message: "Campo Obrigatório" }),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(4, { message: "Mínimo 4 caracteres" }),
 });
 
 type TSignInSchema = z.infer<typeof SignInSchema>;
 
 export const FormLogin: FC = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const { register, handleSubmit, formState } = useForm<TSignInSchema>({
     resolver: zodResolver(SignInSchema),
     defaultValues: {
       email: "",
       password: "",
     },
+    mode: "onBlur",
   });
+
   const { toast } = useToast();
-  const { isSubmitting, errors } = formState;
+  const { errors, isValid } = formState;
   const router = useRouter();
-  const getData = useCallback(
-    async (event: FieldValues) => {
+
+  const onSubmit = useCallback(
+    async (data: TSignInSchema) => {
+      setIsLoading(true);
       try {
-        const login = await signIn("credentials", {
-          ...event,
+        const result = await signIn("credentials", {
+          ...data,
           redirect: false,
         });
 
-        if (login?.status === HttpStatusCode.UNAUTHORIZED) {
-          toast({
-            description: "Falha no login",
-            variant: "destructive",
-          });
-          return;
+        if (result?.error) {
+          const errorAdapter = new ErrorHandlerAdapter();
+          errorAdapter.handle(
+            new AuthenticationError("email ou senha inválidos"),
+          );
         }
 
-        if (login?.status === HttpStatusCode.OK) {
+        if (result?.ok) {
           router.prefetch("/dashboard");
-
           toast({
-            description: "Login efetuado com sucesso",
+            title: "Sucesso",
+            description: "Login realizado com sucesso",
             variant: "success",
           });
           router.replace("/dashboard");
-          return;
         }
       } catch (error) {
+        console.error(error);
         toast({
-          description: "Erro ao realizar login",
+          title: "Erro",
+          description:
+            error instanceof Error
+              ? `${error.message}`
+              : "Ocorreu um erro inesperado",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     },
     [router, toast],
@@ -64,37 +76,37 @@ export const FormLogin: FC = () => {
 
   return (
     <form
-      className="grid gap-8  p-8 rounded-md border"
-      method="post"
-      onSubmit={handleSubmit(getData)}
+      className="grid gap-6 p-8 rounded-md border w-full max-w-md"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
     >
-      <label>
-        <Input
-          type="email"
-          placeholder="Email"
-          {...register("email", {
-            required: { value: true, message: "Campo obrigatório" },
-            minLength: { value: 4, message: "Mínimo de 4 caracteres" },
-          })}
-        />
-        {errors["email"] ? (
-          <ErrorMessageInput error={errors} name={"email"} />
-        ) : null}
-      </label>
-      <label>
-        <Input
-          type="password"
-          placeholder="Password"
-          {...register("password", {
-            required: { value: true, message: "Campo obrigatório" },
-            minLength: { value: 4, message: "Mínimo de 4 caracteres" },
-          })}
-        />
-        {errors["password"] ? (
-          <ErrorMessageInput error={errors} name={"password"} />
-        ) : null}
-      </label>
-      <Button disabled={isSubmitting}>Acessar</Button>
+      <div className="space-y-4">
+        <div>
+          <Input
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            {...register("email")}
+            aria-invalid={!!errors.email}
+          />
+          <ErrorMessageInput error={errors} name="email" />
+        </div>
+
+        <div>
+          <Input
+            type="password"
+            placeholder="Senha"
+            autoComplete="current-password"
+            {...register("password")}
+            aria-invalid={!!errors.password}
+          />
+          <ErrorMessageInput error={errors} name="password" />
+        </div>
+      </div>
+
+      <Button type="submit" disabled={!isValid || isLoading}>
+        {isLoading ? "Carregando..." : "Acessar"}
+      </Button>
     </form>
   );
 };

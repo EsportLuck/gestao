@@ -18,3 +18,8 @@ export class InvalidFormatError extends ValidationError {
     super(`Formato inválido para ${field}. Formato esperado: ${format}`);
   }
 }
+export class CredentialsSigninError extends ValidationError {
+  constructor() {
+    super(`Credenciais inválidas`);
+  }
+}

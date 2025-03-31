@@ -41,7 +41,7 @@ import { format } from "@/utils";
 import { useSession } from "next-auth/react";
 import { ComboboxEstablishment } from "@/components/template";
 import { useRouter } from "next/navigation";
-import { useMatrizes } from "@/hooks";
+import { useMatrizes } from "@/shared/hooks";
 import { HttpStatusCode } from "@/domain/enum";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { ErrorHandlerAdapter } from "@/presentation/adapters/ErrorHandlerAdapter";

@@ -17,7 +17,7 @@ import { Controller, FieldValues, useForm } from "react-hook-form";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useMemo } from "react";
 import { Empresa } from "@prisma/client";
-import { useEmpresas, useLocalidades, useSecoes } from "@/hooks";
+import { useEmpresas, useLocalidades, useSecoes } from "@/shared/hooks";
 import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({

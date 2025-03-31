@@ -4,7 +4,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useMemo } from "react";
 
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function ReportTableCaixas() {
   const data = useFetch<Cronjob[]>("/api/v1/management/cronjob");

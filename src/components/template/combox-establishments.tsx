@@ -29,7 +29,7 @@ export function ComboboxEstablishment({
   }, [value, onValueChange]);
 
   React.useEffect(() => {
-    if (establishments.length < 1) return;
+    if (establishments?.length < 1) return;
     setComboxItens(establishments);
   }, [establishments]);
 
@@ -85,7 +85,7 @@ export function ComboboxEstablishment({
           />
         </label>
         <ul className="max-h-52 overflow-auto">
-          {comboxItens.map((item) =>
+          {comboxItens?.map((item) =>
             item && item.name ? (
               <li
                 className="p-2 rounded-sm text-sm outline-offset-0 focus:outline focus:outline-2 outline-slate-50 hover:bg-accent/90 "

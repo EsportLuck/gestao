@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Secao } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function useSecoes() {
   const obterSecoes = useFetch<{ secoes: Partial<Secao>[] }>(

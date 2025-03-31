@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Estabelecimento } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 type TMatrizResponse = {
   matrizes: Partial<Estabelecimento>[];

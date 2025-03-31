@@ -1,6 +1,10 @@
 "use client";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
-import { reducer, initialState, ACTION_TYPES } from "@/hooks/useEditSupervisor";
+import {
+  reducer,
+  initialState,
+  ACTION_TYPES,
+} from "@/shared/hooks/useEditSupervisor";
 import { ErrorHandlerAdapter } from "@/presentation/adapters";
 import { Pen, Save } from "lucide-react";
 import React, { useReducer } from "react";

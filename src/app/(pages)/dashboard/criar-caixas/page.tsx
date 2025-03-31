@@ -1,7 +1,7 @@
 "use client";
 import { FormCriarCaixas } from "@/components/(pages)/criar-caixas";
 import { ReportTableCaixas } from "@/components/template";
-import { useEmpresas } from "@/hooks";
+import { useEmpresas } from "@/shared/hooks";
 
 export default function CriarCaixas() {
   const { empresas } = useEmpresas();

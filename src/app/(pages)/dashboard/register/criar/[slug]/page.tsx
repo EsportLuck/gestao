@@ -17,7 +17,7 @@ import { Controller, FieldValues, useForm } from "react-hook-form";
 import { tornarPrimeiraLetraMaiuscula } from "@/utils";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { useEffect, useState } from "react";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 import { Empresa } from "@prisma/client";
 import { ErrorHandlerAdapter } from "@/presentation/adapters";
 

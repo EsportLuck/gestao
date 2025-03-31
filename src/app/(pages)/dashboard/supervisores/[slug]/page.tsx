@@ -3,10 +3,10 @@ import ModalProvider from "@/context/modalEstabelecimentosContext";
 import { Action } from "./component";
 import { Description } from "./component/description";
 import { TituloSupervisor } from "./component/titulo-supervisor";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 import { Supervisor } from "@prisma/client";
 import { useMemo } from "react";
-import { useLocalidades, useRota, useSecoes } from "@/hooks";
+import { useLocalidades, useRota, useSecoes } from "@/shared/hooks";
 
 interface SupervisorDetalhado extends Supervisor {
   localidade: string;

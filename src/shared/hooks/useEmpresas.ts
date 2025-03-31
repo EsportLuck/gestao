@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Empresa } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function useEmpresas() {
   const obterEmpresas = useFetch<{ empresas: Partial<Empresa>[] }>(

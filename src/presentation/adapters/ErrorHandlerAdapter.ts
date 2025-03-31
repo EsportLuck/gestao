@@ -33,7 +33,6 @@ export class ErrorHandlerAdapter implements ErrorPresenter {
       title: "Erro Inesperado",
       description: "Ocorreu um erro ao processar sua solicitação",
     };
-    console.log({ errorType });
     toast({
       title: errorConfig.title,
       description:

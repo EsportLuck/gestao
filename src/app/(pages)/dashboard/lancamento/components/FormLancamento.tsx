@@ -30,7 +30,7 @@ import { LancamentoContext } from "@/context/lancamentoContext";
 import { ComboboxEstablishment } from "@/components/template";
 import { FetchHttpClient } from "@/adapter/FetchHttpClient";
 import { LancamentosTable } from "@/components/template/table-lancamentos/columns";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 import { Empresa, Estabelecimento } from "@prisma/client";
 import { ErrorHandlerAdapter } from "@/presentation/adapters";
 

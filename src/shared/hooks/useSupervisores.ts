@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Supervisor } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function useSupervisores() {
   const { data, error, isLoading } = useFetch<{

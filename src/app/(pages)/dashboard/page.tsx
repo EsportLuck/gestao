@@ -2,7 +2,7 @@
 import React, { FC, useMemo } from "react";
 import { DataTableEstabelecimentos } from "@/components/template";
 import { useSession } from "next-auth/react";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 import { obterInicioEFimDoCiclo } from "@/app/api/v1/utils/obterInicioEFimDoCiclo";
 
 const Dashboard: FC = () => {

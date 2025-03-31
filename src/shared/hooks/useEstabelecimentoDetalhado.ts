@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Empresa, Estabelecimento } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export interface IEstabelecimentoDetalhado extends Partial<Estabelecimento> {
   localidade: string;

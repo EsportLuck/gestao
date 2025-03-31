@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Localidade } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function useLocalidades() {
   const obterLocalidades = useFetch<{ localidades: Partial<Localidade>[] }>(

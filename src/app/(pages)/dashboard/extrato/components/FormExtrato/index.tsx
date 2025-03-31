@@ -27,7 +27,6 @@ import {
   DataTableEstabelecimentos,
   TotalValueTable,
 } from "@/components/template";
-import { Supervisor } from "@prisma/client";
 import { EstabelecimentosExtrato } from "@/components/template/estabelecimentos-report-table/columns";
 import { useSession } from "next-auth/react";
 import {
@@ -37,7 +36,7 @@ import {
   useRota,
   useSupervisores,
   useEstabelecimentos,
-} from "@/hooks";
+} from "@/shared/hooks";
 import { ErrorHandlerAdapter } from "@/presentation/adapters";
 
 const formSchema = z.object({

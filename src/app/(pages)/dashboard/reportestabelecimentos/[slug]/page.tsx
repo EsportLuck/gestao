@@ -9,7 +9,7 @@ import {
   useSupervisores,
   useMatrizes,
   useEstabelecimentoDetalhado,
-} from "@/hooks";
+} from "@/shared/hooks";
 
 export default function Page({ params }: { params: { slug: string } }) {
   const { localidades } = useLocalidades();

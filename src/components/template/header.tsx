@@ -13,6 +13,8 @@ interface IHeader
 
 export const Header: FC<IHeader> = ({ ...props }) => {
   const { status, data } = useSession();
+  const username = data?.user.username || "";
+  const role = data?.user.role || "";
   const pathname = usePathname();
   const handleSignOut = () => signOut();
   const authenticated = () => {
@@ -39,11 +41,7 @@ export const Header: FC<IHeader> = ({ ...props }) => {
         {menu()}
       </div>
       {authenticated() && (
-        <Profile
-          username={data?.user.username as string}
-          role={data?.user.role as string}
-          onClick={handleSignOut}
-        />
+        <Profile username={username} role={role} onClick={handleSignOut} />
       )}
     </header>
   );

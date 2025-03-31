@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Rota } from "@prisma/client";
-import { useFetch } from "@/hooks/useFetch";
+import { useFetch } from "@/shared/hooks/useFetch";
 
 export function useRota() {
   const obterRota = useFetch<{ rotas: Partial<Rota>[] }>(

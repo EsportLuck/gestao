@@ -1,7 +1,7 @@
 "use client";
 import { columns, TReportEstablishment } from "./columns";
 import { DataTable } from "./data-table";
-import { useEstabelecimentos } from "@/hooks";
+import { useEstabelecimentos } from "@/shared/hooks";
 
 export default function EstablishmentReportTable() {
   const { estabelecimentos } = useEstabelecimentos();

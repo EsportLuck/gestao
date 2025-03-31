@@ -34,9 +34,6 @@ const authOptions: AuthOptions = {
           if (!passwordMatch) throw new Error("Invalid password");
           return user as unknown as User;
         } catch (error) {
-          const errorAdapter = new ErrorHandlerAdapter();
-          errorAdapter.handle(error);
-
           return null;
         } finally {
           await prisma.$disconnect();

@@ -2,7 +2,7 @@
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 
-import { useSupervisores } from "@/hooks";
+import { useSupervisores } from "@/shared/hooks";
 
 export function ReportTableSupervisores() {
   const { supervisores, isLoading, error } = useSupervisores();
