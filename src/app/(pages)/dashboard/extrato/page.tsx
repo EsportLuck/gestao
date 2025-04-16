@@ -1,13 +1,7 @@
-import { TitlePage } from "@/components/TitlePage";
-import { FormExtrato } from "./components/FormExtrato";
+import { ExtratoPage } from "@/presentation/pages/Extrato";
 
-async function ExtratoPage() {
-  return (
-    <section className="">
-      <TitlePage title="Extrato" />
-      <FormExtrato />
-    </section>
-  );
+async function Extrato() {
+  return <ExtratoPage />;
 }
 
-export default ExtratoPage;
+export default Extrato;
