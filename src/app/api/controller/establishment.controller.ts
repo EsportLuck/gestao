@@ -16,9 +16,9 @@ export interface IEstablishment {
 
 type IUpdate = Omit<IEstablishment, "id">;
 
-function verificaValor(num: number | null | undefined) {
-  if (num === null || num === undefined) return 0;
-  return num;
+function verificaValor(value: unknown): number {
+  if (typeof value === "number" && !Number.isNaN(value)) 0;
+  return Number(value);
 }
 
 export class Establishment {
